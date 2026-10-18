@@ -169,7 +169,8 @@ input[type='checkbox'], input[type='range'] { accent-color: var(--accent); }
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer;
 }
 .actions .lang:hover { border-color: var(--border-strong); color: var(--text); }
-.brand > span[data-t] { overflow: hidden; text-overflow: ellipsis; }
+.brand > span[data-t] { overflow: hidden; text-overflow: ellipsis; text-box: trim-both cap alphabetic; }
+:root:is([data-lang='zh'], [data-lang='ja'], [data-lang='ko']) .brand > span[data-t] { translate: 0 0.06em; }
 
 /* ---------- 主体 ---------- */
 main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) var(--side); }
@@ -654,8 +655,21 @@ function stageInk(P, L) {      // 原版 ink_layer + value_map：墨层、去网
 function stagePen(P) {         // 本页加的细尺度 DoG 线稿，在原图 L* 上提
   const kk = key(P, ['fine', 'fineSigma', 'coarse', 'minArea'])
   if (cache.pen?.k === kk) return cache.pen.v
-  const bf = gauss(Lraw, P.fineSigma * k), bc = gauss(Lraw, 3 * k), m = new Uint8Array(N)
-  for (let i = 0; i < N; i++) m[i] = (bf[i] - Lraw[i] > P.fine && Lraw[i] < 90) || (bc[i] - Lraw[i] > P.coarse && Lraw[i] < 65) ? 1 : 0
+  // 双阈值滞后：过阈值的是强线，过一半的是弱线；弱线连着强线才保留，淡下去的一段不会把一根线切成几笔
+  const bf = gauss(Lraw, P.fineSigma * k), bc = gauss(Lraw, 3 * k), m = new Uint8Array(N), stack = []
+  for (let i = 0; i < N; i++) {
+    const df = bf[i] - Lraw[i], dc = bc[i] - Lraw[i]
+    if ((df > P.fine && Lraw[i] < 90) || (dc > P.coarse && Lraw[i] < 65)) { m[i] = 2; stack.push(i) }
+    else if ((df > P.fine * 0.5 && Lraw[i] < 92) || (dc > P.coarse * 0.6 && Lraw[i] < 70)) m[i] = 1
+  }
+  while (stack.length) {
+    const i = stack.pop(), x = i % W
+    for (const o of [-W, W, x > 0 ? -1 : 0, x < W - 1 ? 1 : 0, x > 0 ? -W - 1 : 0, x < W - 1 ? -W + 1 : 0, x > 0 ? W - 1 : 0, x < W - 1 ? W + 1 : 0]) {
+      const j = i + o
+      if (o && j >= 0 && j < N && m[j] === 1) { m[j] = 2; stack.push(j) }
+    }
+  }
+  for (let i = 0; i < N; i++) m[i] = m[i] === 2 ? 1 : 0
   const v = keepComponents(m, true, (a) => a >= P.minArea * k * k)
   cache.pen = { k: kk, v }
   return v
@@ -1095,11 +1109,11 @@ const DEFAULTS = {
   black: 0.20, white: 0.70, gamma: 1.3, hk: 0, guard: 25,
   wp: 0.80, mid: 0.55, bp: 0.30, minRegion: 600, grad: 1, solid: 0.22,
   screen: 'dot', lines: 200, angle: 45, light: 0.18, dark: 0.42,
-  pen: true, fine: 6, fineSigma: 1.2, coarse: 7, minArea: 4, whiteLines: true,
+  pen: true, fine: 4, fineSigma: 1.2, coarse: 7, minArea: 4, whiteLines: true,
   darkSplit: true, darkGap: 0.035, darkFloor: 0.2, edgeLines: false, edgeLow: 1.2, edgeLen: 28,
   size: 1200,
 }
-const KEY = 'tone-bench:params:v5'
+const KEY = 'tone-bench:params:v6'
 let P = { ...DEFAULTS }
 try { Object.assign(P, JSON.parse(localStorage.getItem(KEY) || '{}')) } catch {}
 
@@ -1176,10 +1190,12 @@ function autoParams(gray, L, V) {
   const ip = D.wp ** D.gamma, is = D.bp ** D.gamma
   let black = D.black, white = D.white
   const paper = 1 - below(black + ip * (white - black)), solid = below(black + is * (white - black))
-  const fp = clamp(paper, 0.25, 0.6), fs = clamp(solid, 0, 0.3)
+  const fp = clamp(paper, 0.25, 0.45), fs = clamp(solid, 0, 0.3)
   if (fp !== paper || fs !== solid) {
     const span = Math.max(0.2, (q(1 - fp) - q(fs)) / (ip - is))
     black = clamp(q(fs) - is * span, 0, 0.6); white = clamp(black + span, 0.4, 1)
+    // 白场顶到 1 时纸白占比只能靠抬黑场压下来（浅色头发、皮肤留网点），实黑不超过 30% 为限
+    if (black + span > 1) black = clamp(Math.min((q(1 - fp) - ip) / (1 - ip), (q(0.3) - is) / (1 - is)), 0, 0.6)
   }
   const r2 = (v) => Math.round(v * 100) / 100
   return { black: r2(black), white: r2(white), hk, lines: clamp(Math.round((D.lines * Math.sqrt(Math.max(1, W / H))) / 10) * 10, 40, 600) }
@@ -1341,6 +1357,7 @@ stage.addEventListener('wheel', (e) => {
   const mid = () => { const a = [...pts.values()]; return a.length > 1 ? { x: (a[0].x + a[1].x) / 2, y: (a[0].y + a[1].y) / 2, d: Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) } : { x: a[0].x, y: a[0].y, d: 0 } }
   stage.addEventListener('pointerdown', (e) => {
     if (e.target.closest('.zoom')) return
+    e.preventDefault()
     stage.setPointerCapture(e.pointerId)
     const r = stage.getBoundingClientRect()
     pts.set(e.pointerId, { x: e.clientX - r.left, y: e.clientY - r.top })
@@ -1492,7 +1509,7 @@ const PRESETS = [
   ['粗网点', { lines: 110, light: 0.2, dark: 0.46 }],
   ['高对比', { bp: 0.38, solid: 0.28, light: 0.22, dark: 0.52, grad: 0.5 }],
   ['柔和', { bp: 0.2, solid: 0.16, light: 0.12, dark: 0.32, minRegion: 300 }],
-  ['线稿为主', { wp: 0.6, mid: 0.4, light: 0.1, dark: 0.3, grad: 0, fine: 4 }],
+  ['线稿为主', { wp: 0.6, mid: 0.4, light: 0.1, dark: 0.3, grad: 0, fine: 3 }],
   ['线网', { screen: 'line', lines: 150, light: 0.2, dark: 0.45 }],
   ['风景', { edgeLines: true, minRegion: 1200 }],
 ]
@@ -1568,7 +1585,8 @@ async function loadSample(i) {
   } catch { clearBusy(); hint.textContent = t('打开或拖入一张图片') }
 }
 document.getElementById('file').addEventListener('change', (e) => { const f = e.target.files[0]; if (f) loadBlob(f, f.name) })
-stage.addEventListener('dragover', (e) => { e.preventDefault(); stage.classList.add('drag') })
+stage.addEventListener('dragstart', (e) => e.preventDefault())
+stage.addEventListener('dragover', (e) => { if (!e.dataTransfer.types.includes('Files')) return; e.preventDefault(); stage.classList.add('drag') })
 stage.addEventListener('dragleave', () => stage.classList.remove('drag'))
 stage.addEventListener('drop', (e) => {
   e.preventDefault(); stage.classList.remove('drag')

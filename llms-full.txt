@@ -109,7 +109,7 @@ Sizes are normalized to a 1024 px wide image, so the same settings give the same
 - **Smallest region** (px²): 0–3000, default 600. At 1024 px width. Smaller regions merge into their surroundings, so tone areas stay whole.
 - **Split floor**: 0.05–0.4, default 0.2. Only pixels brighter than this in the original become tone. Dark gray fabric and a black bag are often very close, so tune it per image.
 - **Split sensitivity**: 0.01–0.12, default 0.035. Splits only when the two groups inside a dark area differ by more than this. Lower splits more.
-- **Fine line sensitivity** (L*): 1–20, default 6. Lower is more sensitive and catches faint thin lines such as mouths and eyelashes.
+- **Fine line sensitivity** (L*): 1–20, default 4. Lower is more sensitive and catches faint thin lines such as mouths and eyelashes.
 - **Bold line sensitivity** (L*): 1–25, default 7.
 - **Fine line scale** (σ): 0.6–3, default 1.2.
 - **Speck removal** (px): 1–40, default 4.
