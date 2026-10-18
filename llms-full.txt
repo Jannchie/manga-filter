@@ -126,4 +126,4 @@ Sizes are normalized to a 1024 px wide image, so the same settings give the same
 
 ### Screen types
 
-Round dot, Square dot, Diamond dot, Chain dot, Lines, Cross lines, Wave lines, Sand grain, Rings, Speed lines.
+Round, Square, Diamond, Chain, Lines, Cross, Wave, Sand, Rings, Radial.

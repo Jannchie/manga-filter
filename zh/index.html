@@ -127,6 +127,10 @@ button:active, .btn:active { transform: translateY(0.5px); filter: brightness(0.
 .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
 .btn input { display: none; }
 button svg, .btn svg { color: var(--text-muted); }
+/* 图标 + 文字的控件：文字框裁到大写字母高度和基线再居中，中日韩字和拉丁字母都和图标对齐（不支持的浏览器照旧） */
+button > span, .btn > span, .status a > span, .check > span { text-box: trim-both cap alphabetic; }
+/* 中日韩字的墨迹整体比大写字母高半个像素到一个像素：再往下挪一点做视觉居中 */
+:root:is([data-lang='zh'], [data-lang='ja'], [data-lang='ko']) :is(button, .btn, .check) > span { translate: 0 0.06em; }
 .btn.primary svg { color: inherit; }
 :focus-visible { outline: 2px solid var(--accent-ring); outline-offset: 1px; }
 .btn:focus-within { outline: 2px solid var(--accent-ring); outline-offset: 1px; }
@@ -273,11 +277,12 @@ aside {
 /* 网点类型：带预览的卡片，选中态同分段控件（一层底 + 内描边） */
 .screens { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
 .screens button {
-  height: auto; flex-direction: column; align-items: stretch; gap: 4px; padding: 4px 3px 5px; min-width: 0;
+  height: auto; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 4px; padding: 4px 1px 5px; min-width: 0;
   background: transparent; border-color: transparent; color: var(--text-muted); font-size: var(--fs-xs);
 }
 .screens button:hover { background: var(--hover); border-color: transparent; color: var(--text); }
 .screens button[aria-pressed='true'] { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: inset 0 0 0 1px var(--border-strong), var(--shadow-sm); }
+.screens span { white-space: normal; text-align: center; line-height: 1.25; font-feature-settings: 'palt'; }
 .screens canvas { display: block; width: 100%; height: 34px; border-radius: 4px; box-shadow: 0 0 0 1px var(--border); }
 .check { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sm); cursor: pointer; }
 
@@ -391,8 +396,8 @@ aside {
   <span id="hint" class="num" data-t="载入中…">载入中…</span>
   <span class="keys" data-t="滚轮缩放 · 拖动平移 · 双击切换适应 / 1:1">滚轮缩放 · 拖动平移 · 双击切换适应 / 1:1</span>
   <span class="links">
-    <a href="https://github.com/Jannchie/manga-filter" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 20.5V18c0-1 .25-1.75 1-2.5-3.75-.5-6-2.5-6-5.5 0-1.25.5-2.25 1-2.75L6 3.5l3.5 2c1.5-.25 3.5-.25 5 0l3.5-2 .5 3.75c.5.5 1 1.5 1 2.75 0 3-2.25 5-6 5.5.75.75 1 1.5 1 2.5v2.5m-5-2.25c-3 1-3.25-1.75-5.5-1.75"/></svg>Jannchie/manga-filter</a>
-    <a href="https://x.com/jannchie" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2.75H8.5L20 21.25H15.5zM4.5 21.5l6.24-7.9M19.5 2.5l-6.24 7.91"/></svg>@jannchie</a>
+    <a href="https://github.com/Jannchie/manga-filter" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 20.5V18c0-1 .25-1.75 1-2.5-3.75-.5-6-2.5-6-5.5 0-1.25.5-2.25 1-2.75L6 3.5l3.5 2c1.5-.25 3.5-.25 5 0l3.5-2 .5 3.75c.5.5 1 1.5 1 2.75 0 3-2.25 5-6 5.5.75.75 1 1.5 1 2.5v2.5m-5-2.25c-3 1-3.25-1.75-5.5-1.75"/></svg><span>Jannchie/manga-filter</span></a>
+    <a href="https://x.com/jannchie" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2.75H8.5L20 21.25H15.5zM4.5 21.5l6.24-7.9M19.5 2.5l-6.24 7.91"/></svg><span>@jannchie</span></a>
     <a href="https://github.com/ashukae/ComfyUI-MangaScreen" target="_blank" rel="noopener" data-t="基于 ashukae/ComfyUI-MangaScreen（MIT）">基于 ashukae/ComfyUI-MangaScreen（MIT）</a>
   </span>
 </footer>
@@ -927,16 +932,16 @@ const I18N = {
   '叠加细线（嘴、鼻、浅色轮廓）': ['Add fine lines (mouth, nose, pale outlines)', '細い線を重ねる（口、鼻、薄い輪郭）', '가는 선 겹치기(입, 코, 옅은 윤곽)'],
   '淡边描线（雾中建筑这类只有明暗差的直边）': ['Faint edge lines (straight edges with only a tonal step, such as buildings in haze)', '淡い輪郭線（霞んだ建物のように明暗差しかない直線）', '옅은 윤곽선(안개 속 건물처럼 명암 차이만 있는 직선)'],
   '实黑内切出白线（保留深色衣服的褶皱）': ['White lines in solid black (keeps folds on dark clothes)', 'ベタに白線を抜く（濃い服のしわを残す）', '먹칠 안에 흰 선 파내기(짙은 옷의 주름 유지)'],
-  '圆点': ['Round dot', '丸点', '원형 점'],
-  '方点': ['Square dot', '角点', '사각 점'],
-  '菱形点': ['Diamond dot', '菱形点', '마름모 점'],
-  '链点': ['Chain dot', 'チェーン点', '체인 점'],
+  '圆点': ['Round', '丸点', '원형'],
+  '方点': ['Square', '角点', '사각'],
+  '菱形点': ['Diamond', '菱形', '마름모'],
+  '链点': ['Chain', 'チェーン', '체인'],
   '平行线': ['Lines', '平行線', '평행선'],
-  '交叉线': ['Cross lines', 'クロス線', '교차선'],
-  '波纹线': ['Wave lines', '波線', '물결선'],
-  '砂目': ['Sand grain', '砂目', '모래결'],
+  '交叉线': ['Cross', 'クロス', '교차선'],
+  '波纹线': ['Wave', '波線', '물결선'],
+  '砂目': ['Sand', '砂目', '모래결'],
   '同心圆': ['Rings', '同心円', '동심원'],
-  '集中线': ['Speed lines', '集中線', '집중선'],
+  '集中线': ['Radial', '集中線', '집중선'],
   '载入中…': ['Loading…', '読み込み中…', '불러오는 중…'],
   '示例': ['Sample', 'サンプル', '예시'],
   '打开或拖入一张图片': ['Open or drop an image', '画像を開くかドロップしてください', '이미지를 열거나 끌어다 놓으세요'],
