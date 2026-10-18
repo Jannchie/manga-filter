@@ -13,9 +13,9 @@ The whole tool is [`index.html`](index.html), a single HTML file. Open it in a b
 ## Usage
 
 1. Open <https://jannchie.github.io/manga-filter/>, or open `index.html` in a recent browser.
-2. Click **Open image**, drag an image onto the canvas, or paste one from the clipboard.
-3. Adjust the sliders. Hold **Hold to see original** to compare with the source.
-4. **Copy parameters** copies the current settings as JSON; **Reset to baseline** restores the defaults.
+2. Click **Open image**, drag an image onto the canvas, or paste one from the clipboard. The two thumbnails next to the button load sample images.
+3. Start from a preset, then adjust the sliders. **Auto** picks the black and white points, the saturated color lift and the screen ruling from the image; the other presets build on it. Hold **Hold to see original** to compare with the source.
+4. **Copy parameters** copies the current settings as JSON; **Reset** goes back to the automatic settings for the current image.
 
 In the preview, scroll to zoom around the pointer, drag to pan, and double-click to switch between fit-to-window and 1:1. Press `0` to fit and `1` for 1:1. Click a slider to select it, then scroll to nudge it (Shift for ×10), or double-click it to reset.
 
@@ -25,8 +25,9 @@ The pipeline is a port of the Manga Levels and Manga Finish nodes from [ashukae/
 
 - **Fine lines.** A two-scale difference of Gaussians on the original L\* channel brings back mouths, noses and pale outlines. The original needs an external neural line extractor (Manga Lineart) to get these.
 - **Saturated color lift.** Brightens saturated colors following the Helmholtz–Kohlrausch effect, so a red coat no longer turns into a black block.
-- **Dark split** (off by default). Turns the lighter part of a large solid black into dark tone, which suits dark gray fabric such as a black skirt. It can also break up dark hair, so enable it per image.
+- **Dark split** (on by default). Turns the lighter part of a large solid black into dark tone, which suits dark gray fabric such as a black skirt and gives dark clothes some volume. If it breaks up dark hair on an image, turn it off.
 - **Faint edge lines** (off by default). Keeps only long, thin, straight segments from Canny edges to outline buildings in haze.
+- **Automatic defaults.** On load, the levels are set from the image's brightness distribution (pure white backgrounds are ignored), so dark scenes no longer turn into a black page, and the saturated color lift is enabled when the image has many vivid colors.
 - **Ten screen types.** Round dot, square dot, diamond dot, chain dot, line, cross line, wave line, sand grain, concentric rings and speed lines (radial).
 - **Separate print resolution.** When the screen pitch would be under 10 px, the page is printed at a higher resolution, so round dots actually come out round.
 

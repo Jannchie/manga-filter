@@ -149,6 +149,10 @@ input[type='checkbox'], input[type='range'] { accent-color: var(--accent); }
   display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-height: var(--top-h);
   padding-block: 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: 16px;
 }
+.samples { display: flex; gap: 4px; }
+.samples button { width: 30px; height: 30px; padding: 0; overflow: hidden; }
+.samples img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.samples button[aria-pressed='true'] { box-shadow: 0 0 0 2px var(--accent); }
 .actions .sep { width: 1px; height: 20px; background: var(--border); }
 .brand {
   display: flex; align-items: center; gap: 10px; border-left: 1px solid var(--border);
@@ -265,6 +269,7 @@ aside {
 .presets button:hover { background: var(--hover); color: var(--text); }
 .presets button[aria-pressed='true'] { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: inset 0 0 0 1px var(--border-strong), var(--shadow-sm); }
 .rows { display: grid; gap: 14px; }
+.rows:empty, .rows[hidden] { display: none; }
 /* 网点类型：带预览的卡片，选中态同分段控件（一层底 + 内描边） */
 .screens { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
 .screens button {
@@ -311,12 +316,13 @@ aside {
 <header class="top">
   <div class="actions">
     <label class="btn primary" for="file"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.05 18H5A2 2 0 013 16V5A2 2 0 015 3H16a2 2 0 012 2v8.05M3 14.79l3.93-3.94a.5.5 0 01.71 0l5.99 5.99M18.5 15.5v6m-3-3h6"/><path d="M14.25 6.75h0" stroke-width="2"/></svg><span data-t="打开图片">打开图片</span><input id="file" type="file" accept="image/*"></label>
+    <span class="samples" id="samples" role="group" aria-label="示例" data-t-aria="示例"></span>
     <span class="sep" aria-hidden="true"></span>
     <button id="hold" type="button" title="按住显示原图" data-t-title="按住显示原图"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12C5 7.25 8.25 5 12 5c3.75 0 7 2.25 9.5 7-2.5 4.75-5.75 7-9.5 7-3.75 0-7-2.25-9.5-7zM9 12a3 3 0 106 0A3 3 0 109 12"/></svg><span data-t="按住看原图">按住看原图</span></button>
     
     <span class="sep" aria-hidden="true"></span>
     <button id="copy" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 8.5h8a2 2 0 012 2v8a2 2 0 01-2 2h-8a2 2 0 01-2-2v-8a2 2 0 012-2zM6 15.5H4.75A1.25 1.25 0 013.5 14.25V5.5a2 2 0 012-2h8.75A1.25 1.25 0 0115.5 4.75V6"/></svg><span data-t="复制参数">复制参数</span></button>
-    <button id="reset" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.22 12A7.78 7.78 0 106.5 6.5L5.25 7.75M4.5 4V8a.5.5 0 00.5.5H9"/></svg><span data-t="恢复基线">恢复基线</span></button>
+    <button id="reset" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.22 12A7.78 7.78 0 106.5 6.5L5.25 7.75M4.5 4V8a.5.5 0 00.5.5H9"/></svg><span data-t="恢复默认">恢复默认</span></button>
     <select class="lang" id="lang" aria-label="Language">
       <option value="en">English</option><option value="zh">中文</option><option value="ja">日本語</option><option value="ko">한국어</option>
     </select>
@@ -345,12 +351,6 @@ aside {
       <div class="rows" data-group="light"></div>
     </section>
     <section class="group">
-      <h2 class="label" data-t="分档">分档</h2>
-      <div class="rows" data-group="levels"></div>
-      <label class="check" title="暗部分层（大块实黑里较亮的部分改成深网点；适合黑裙子这类深灰布料，深色头发会被误伤）" data-t-title="暗部分层（大块实黑里较亮的部分改成深网点；适合黑裙子这类深灰布料，深色头发会被误伤）"><input id="darkSplit" type="checkbox"> <span data-t="暗部分层">暗部分层</span></label>
-      <div class="rows" data-group="dark"></div>
-    </section>
-    <section class="group">
       <h2 class="label" data-t="网点">网点</h2>
       <div class="screens" role="group" aria-label="网点类型" data-t-aria="网点类型">
         <button type="button" data-screen="dot" aria-pressed="true"><canvas></canvas><span data-t="圆点">圆点</span></button>
@@ -367,12 +367,18 @@ aside {
       <div class="rows" data-group="screen"></div>
     </section>
     <section class="group">
+      <h2 class="label" data-t="分档">分档</h2>
+      <div class="rows" data-group="levels"></div>
+      <label class="check" title="暗部分层（大块实黑里较亮的部分改成深网点；适合黑裙子这类深灰布料，深色头发会被误伤）" data-t-title="暗部分层（大块实黑里较亮的部分改成深网点；适合黑裙子这类深灰布料，深色头发会被误伤）"><input id="darkSplit" type="checkbox"> <span data-t="暗部分层">暗部分层</span></label>
+      <div class="rows" data-group="dark" data-when="darkSplit"></div>
+    </section>
+    <section class="group">
       <h2 class="label" data-t="线稿与实黑">线稿与实黑</h2>
       <label class="check" title="叠加细线（嘴、鼻、浅色轮廓）" data-t-title="叠加细线（嘴、鼻、浅色轮廓）"><input id="pen" type="checkbox"> <span data-t="叠加细线">叠加细线</span></label>
-      <div class="rows" data-group="lines"></div>
-      <label class="check" title="淡边描线（雾中建筑这类只有明暗差的直边）" data-t-title="淡边描线（雾中建筑这类只有明暗差的直边）"><input id="edgeLines" type="checkbox"> <span data-t="淡边描线">淡边描线</span></label>
-      <div class="rows" data-group="edges"></div>
+      <div class="rows" data-group="pen" data-when="pen"></div>
       <label class="check" title="实黑内切出白线（保留深色衣服的褶皱）" data-t-title="实黑内切出白线（保留深色衣服的褶皱）"><input id="whiteLines" type="checkbox"> <span data-t="实黑内切白线">实黑内切白线</span></label>
+      <label class="check" title="淡边描线（雾中建筑这类只有明暗差的直边）" data-t-title="淡边描线（雾中建筑这类只有明暗差的直边）"><input id="edgeLines" type="checkbox"> <span data-t="淡边描线">淡边描线</span></label>
+      <div class="rows" data-group="edges" data-when="edgeLines"></div>
     </section>
     <section class="group">
       <h2 class="label" data-t="输出">输出</h2>
@@ -382,7 +388,7 @@ aside {
 </main>
 
 <footer class="status">
-  <span id="hint" class="num">示例图（程序生成）</span>
+  <span id="hint" class="num" data-t="载入中…">载入中…</span>
   <span class="keys" data-t="滚轮缩放 · 拖动平移 · 双击切换适应 / 1:1">滚轮缩放 · 拖动平移 · 双击切换适应 / 1:1</span>
   <span class="links">
     <a href="https://github.com/Jannchie/manga-filter" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 20.5V18c0-1 .25-1.75 1-2.5-3.75-.5-6-2.5-6-5.5 0-1.25.5-2.25 1-2.75L6 3.5l3.5 2c1.5-.25 3.5-.25 5 0l3.5-2 .5 3.75c.5.5 1 1.5 1 2.75 0 3-2.25 5-6 5.5.75.75 1 1.5 1 2.5v2.5m-5-2.25c-3 1-3.25-1.75-5.5-1.75"/></svg>Jannchie/manga-filter</a>
@@ -887,15 +893,12 @@ const I18N = {
   '复制参数': ['Copy parameters', 'パラメータをコピー', '파라미터 복사'],
   '已复制': ['Copied', 'コピーしました', '복사됨'],
   '复制失败': ['Copy failed', 'コピーできませんでした', '복사하지 못했습니다'],
-  '恢复基线': ['Reset to baseline', '基準に戻す', '기본값으로'],
   '预设': ['Presets', 'プリセット', '프리셋'],
-  '标准': ['Standard', '標準', '표준'],
   '细网点': ['Fine dots', '細かい網点', '촘촘한 망점'],
   '粗网点': ['Coarse dots', '粗い網点', '굵은 망점'],
   '高对比': ['High contrast', 'ハイコントラスト', '고대비'],
   '柔和': ['Soft', 'やわらか', '부드럽게'],
   '线稿为主': ['Mostly line art', '線画中心', '선화 위주'],
-  '深色衣物': ['Dark clothes', '濃い服', '짙은 옷'],
   '风景': ['Scenery', '風景', '풍경'],
   '线网': ['Line screen', '線のトーン', '선 톤'],
   '暗部分层': ['Dark split', '暗部を分ける', '어두운 부분 나누기'],
@@ -934,7 +937,11 @@ const I18N = {
   '砂目': ['Sand grain', '砂目', '모래결'],
   '同心圆': ['Rings', '同心円', '동심원'],
   '集中线': ['Speed lines', '集中線', '집중선'],
-  '示例图（程序生成）': ['Sample (generated)', 'サンプル（プログラムで生成）', '예시(프로그램 생성)'],
+  '载入中…': ['Loading…', '読み込み中…', '불러오는 중…'],
+  '示例': ['Sample', 'サンプル', '예시'],
+  '打开或拖入一张图片': ['Open or drop an image', '画像を開くかドロップしてください', '이미지를 열거나 끌어다 놓으세요'],
+  '自动': ['Auto', '自動', '자동'],
+  '恢复默认': ['Reset', '初期値に戻す', '기본값으로'],
   '粘贴的图片': ['Pasted image', '貼り付けた画像', '붙여 넣은 이미지'],
   '计算中…': ['Computing…', '計算中…', '계산 중…'],
   '出图': ['Output', '出力', '출력'],
@@ -1065,43 +1072,44 @@ const DEFAULTS = {
   wp: 0.80, mid: 0.55, bp: 0.30, minRegion: 600, grad: 1, solid: 0.22,
   screen: 'dot', lines: 200, angle: 45, light: 0.18, dark: 0.42,
   pen: true, fine: 6, fineSigma: 1.2, coarse: 7, minArea: 4, whiteLines: true,
-  darkSplit: false, darkGap: 0.035, darkFloor: 0.2, edgeLines: false, edgeLow: 1.2, edgeLen: 28,
+  darkSplit: true, darkGap: 0.035, darkFloor: 0.2, edgeLines: false, edgeLow: 1.2, edgeLen: 28,
   size: 1200,
 }
-const KEY = 'tone-bench:params:v4'
+const KEY = 'tone-bench:params:v5'
 let P = { ...DEFAULTS }
 try { Object.assign(P, JSON.parse(localStorage.getItem(KEY) || '{}')) } catch {}
 
 let pitchInfo = null
+// 组内按影响大小排，常用的在前
 const SPEC = [
-  { k: 'black', g: 'light', label: '黑场', min: 0, max: 0.6, step: 0.01 },
   { k: 'white', g: 'light', label: '白场', min: 0.4, max: 1, step: 0.01, note: '调低直到皮肤、浅色头发变成纸白。' },
-  { k: 'gamma', g: 'light', label: '伽马', min: 0.5, max: 2.5, step: 0.05, note: '大于 1 提亮中间调。' },
+  { k: 'black', g: 'light', label: '黑场', min: 0, max: 0.6, step: 0.01 },
   { k: 'hk', g: 'light', label: '饱和色提亮', min: 0, max: 1.5, step: 0.05, note: '按 Helmholtz–Kohlrausch 效应调亮高饱和色，红衣服、蓝袜子不再压成黑块。' },
+  { k: 'gamma', g: 'light', label: '伽马', min: 0.5, max: 2.5, step: 0.05, note: '大于 1 提亮中间调。' },
   { k: 'guard', g: 'light', label: '暗部保护', unit: 'L*', min: 0, max: 60, step: 1, note: 'L* 低于此值的颜色不提亮，深色头发保持实黑。' },
-  { k: 'wp', g: 'levels', label: '纸白阈值', min: 0.4, max: 1, step: 0.01 },
-  { k: 'mid', g: 'levels', label: '浅 / 深网点分界', min: 0.2, max: 0.9, step: 0.01 },
-  { k: 'bp', g: 'levels', label: '实黑阈值', min: 0, max: 0.6, step: 0.01, note: '调高让深色衣服变成实黑。' },
-  { k: 'minRegion', g: 'levels', label: '最小色块', unit: 'px²', min: 0, max: 3000, step: 50, note: '按 1024 宽计。小于它的色块并入周围，网点区域更完整。' },
-  { k: 'grad', g: 'levels', label: '渐变网点', min: 0, max: 1, step: 0.05, note: '原图明暗平滑过渡的地方，网点跟着变化，而不是切成平涂台阶。' },
   { k: 'lines', g: 'screen', label: '线数（跨图宽）', min: 40, max: 600, step: 10, extra: () => pitchInfo ? `${t('间距')} ${pitchInfo.pitch.toFixed(2)} px` : '' },
-  { k: 'angle', g: 'screen', label: '角度', unit: '°', min: 0, max: 90, step: 1, extra: () => pitchInfo ? `${t('实际')} ${pitchInfo.angle.toFixed(1)}°` : '' },
   { k: 'light', g: 'screen', label: '浅网点浓度', unit: '%', scale: 100, min: 0.02, max: 0.9, step: 0.01 },
   { k: 'dark', g: 'screen', label: '深网点浓度', unit: '%', scale: 100, min: 0.02, max: 0.95, step: 0.01 },
-  { k: 'solid', g: 'lines', label: '实黑判定', min: 0.05, max: 0.5, step: 0.01, note: '模糊后比它暗的整块涂黑。' },
-  { k: 'fine', g: 'lines', label: '细线灵敏度', unit: 'L*', min: 1, max: 20, step: 0.5, note: '越小越敏感，能抓到嘴、睫毛这类淡而细的线。' },
-  { k: 'fineSigma', g: 'lines', label: '细线尺度', unit: 'σ', min: 0.6, max: 3, step: 0.1 },
-  { k: 'coarse', g: 'lines', label: '粗线灵敏度', unit: 'L*', min: 1, max: 25, step: 0.5 },
-  { k: 'minArea', g: 'lines', label: '去碎点', unit: 'px', min: 1, max: 40, step: 1 },
-  { k: 'darkGap', g: 'dark', label: '分层灵敏度', min: 0.01, max: 0.12, step: 0.005, note: '暗区内两类明度差超过它才分层。越小分得越多。' },
+  { k: 'angle', g: 'screen', label: '角度', unit: '°', min: 0, max: 90, step: 1, extra: () => pitchInfo ? `${t('实际')} ${pitchInfo.angle.toFixed(1)}°` : '' },
+  { k: 'bp', g: 'levels', label: '实黑阈值', min: 0, max: 0.6, step: 0.01, note: '调高让深色衣服变成实黑。' },
+  { k: 'wp', g: 'levels', label: '纸白阈值', min: 0.4, max: 1, step: 0.01 },
+  { k: 'mid', g: 'levels', label: '浅 / 深网点分界', min: 0.2, max: 0.9, step: 0.01 },
+  { k: 'solid', g: 'levels', label: '实黑判定', min: 0.05, max: 0.5, step: 0.01, note: '模糊后比它暗的整块涂黑。' },
+  { k: 'grad', g: 'levels', label: '渐变网点', min: 0, max: 1, step: 0.05, note: '原图明暗平滑过渡的地方，网点跟着变化，而不是切成平涂台阶。' },
+  { k: 'minRegion', g: 'levels', label: '最小色块', unit: 'px²', min: 0, max: 3000, step: 50, note: '按 1024 宽计。小于它的色块并入周围，网点区域更完整。' },
   { k: 'darkFloor', g: 'dark', label: '分层下限', min: 0.05, max: 0.4, step: 0.005, note: '原图灰度高于它才抬成网点。深灰布料和黑色书包往往只差一点，按图调。' },
+  { k: 'darkGap', g: 'dark', label: '分层灵敏度', min: 0.01, max: 0.12, step: 0.005, note: '暗区内两类明度差超过它才分层。越小分得越多。' },
+  { k: 'fine', g: 'pen', label: '细线灵敏度', unit: 'L*', min: 1, max: 20, step: 0.5, note: '越小越敏感，能抓到嘴、睫毛这类淡而细的线。' },
+  { k: 'coarse', g: 'pen', label: '粗线灵敏度', unit: 'L*', min: 1, max: 25, step: 0.5 },
+  { k: 'fineSigma', g: 'pen', label: '细线尺度', unit: 'σ', min: 0.6, max: 3, step: 0.1 },
+  { k: 'minArea', g: 'pen', label: '去碎点', unit: 'px', min: 1, max: 40, step: 1 },
   { k: 'edgeLow', g: 'edges', label: '淡边灵敏度', unit: 'L*/px', min: 0.4, max: 5, step: 0.1, note: '越小越能抓到雾里的淡边，也越容易描到不想要的边。' },
   { k: 'edgeLen', g: 'edges', label: '最短线段', unit: 'px', min: 8, max: 120, step: 2, note: '按 1024 宽计。只描比它长的直线段。' },
   { k: 'size', g: 'output', label: '处理尺寸（长边）', unit: 'px', min: 600, max: 2400, step: 100, note: '越大越清晰也越慢；参数按图宽归一，换尺寸效果不变。' },
 ]
 
 // ---------- 状态 ----------
-let src = null, srcName = t('示例图（程序生成）')
+let src = null, srcName = ''
 let W = 0, H = 0, rgb = null
 const out = document.getElementById('out')
 const view = out.getContext('2d')
@@ -1118,6 +1126,40 @@ const fLab = (t) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116)
 
 // 处理分辨率只看「处理尺寸」：网点圆不圆由 worker 里单独的出图分辨率负责，线数变了不用重新取样
 const scaleFor = () => Math.min(1, P.size / Math.max(src.width, src.height))
+// 按图定几个默认值（「自动」预设和各预设的底）：
+//   饱和色多 → 开饱和色提亮；亮度分布 → 黑白场（主体里纸白占 25–60%、实黑不超过 30% 时保持基线不动）；横图 → 线数按面积加密
+let imgAuto = {}
+function autoParams(gray, L, V) {
+  const D = DEFAULTS, n = gray.length, step = Math.max(1, Math.floor(n / 200000))
+  let sat = 0, cnt = 0
+  for (let i = 0; i < n; i += step, cnt++) if (V[i] - L[i] > 10) sat++
+  const satFrac = sat / cnt
+  const hk = satFrac < 0.04 ? 0 : Math.min(1.2, Math.round((0.4 + 2 * satFrac) * 20) / 20)
+  // 套上提亮后的灰度（同 worker 的 stageLevels）
+  const g = new Float32Array(cnt)
+  for (let i = 0, j = 0; i < n && j < cnt; i += step, j++) {
+    let v = gray[i]
+    if (hk) { let w = clamp((L[i] - D.guard) / 20, 0, 1); w = w * w * (3 - 2 * w); v += (hk * w * (V[i] - L[i])) / 100 }
+    g[j] = v
+  }
+  g.sort()
+  // 纯白底（灰度 ≥ 0.96）不算：大片留白的图只看主体，底色本来就是纸白
+  let m = cnt; while (m > 0 && g[m - 1] >= 0.96) m--
+  if (m < 0.05 * cnt) m = cnt
+  const q = (f) => g[clamp(Math.floor(f * (m - 1)), 0, m - 1)]
+  const below = (x) => { let lo = 0, hi = m; while (lo < hi) { const c = (lo + hi) >> 1; if (g[c] < x) lo = c + 1; else hi = c } return lo / m }
+  // 色阶后的纸白 / 实黑阈值换回原灰度：v > black + wp^γ · (white − black) 就是纸白
+  const ip = D.wp ** D.gamma, is = D.bp ** D.gamma
+  let black = D.black, white = D.white
+  const paper = 1 - below(black + ip * (white - black)), solid = below(black + is * (white - black))
+  const fp = clamp(paper, 0.25, 0.6), fs = clamp(solid, 0, 0.3)
+  if (fp !== paper || fs !== solid) {
+    const span = Math.max(0.2, (q(1 - fp) - q(fs)) / (ip - is))
+    black = clamp(q(fs) - is * span, 0, 0.6); white = clamp(black + span, 0.4, 1)
+  }
+  const r2 = (v) => Math.round(v * 100) / 100
+  return { black: r2(black), white: r2(white), hk, lines: clamp(Math.round((D.lines * Math.sqrt(Math.max(1, W / H))) / 10) * 10, 40, 600) }
+}
 function prepare() {
   const s = scaleFor()
   W = Math.max(1, Math.round(src.width * s)); H = Math.max(1, Math.round(src.height * s))
@@ -1139,6 +1181,7 @@ function prepare() {
   }
   autoFit = true
   resultImg = null
+  imgAuto = autoParams(gray, L, V)
   worker.postMessage({ type: 'image', w: W, h: H, gray, L, V }, [gray.buffer, L.buffer, V.buffer])
 }
 
@@ -1390,35 +1433,34 @@ rebuildRows()
 function syncUI() {
   for (const paint of rows.values()) paint()
   for (const id of ['pen', 'whiteLines', 'darkSplit', 'edgeLines']) document.getElementById(id).checked = P[id]
+  for (const el of document.querySelectorAll('[data-when]')) el.hidden = !P[el.dataset.when]
   for (const b of document.querySelectorAll('[data-screen]')) b.setAttribute('aria-pressed', String(b.dataset.screen === P.screen))
 }
 for (const id of ['pen', 'whiteLines', 'darkSplit', 'edgeLines']) {
-  document.getElementById(id).addEventListener('change', (e) => { P[id] = e.target.checked; save(); schedule() })
+  document.getElementById(id).addEventListener('change', (e) => { P[id] = e.target.checked; syncUI(); save(); schedule() })
 }
 for (const b of document.querySelectorAll('[data-screen]')) {
   b.addEventListener('click', () => { P.screen = b.dataset.screen; syncUI(); save(); schedule() })
 }
-// 预设：在基线上改几个参数（不动处理尺寸）。当前参数正好等于某个预设时高亮它
+// 预设：在这张图的自动值上改几个参数（不动处理尺寸）。当前参数正好等于某个预设时高亮它；换图时沿用这个预设
 const PRESETS = [
-  ['标准', {}],
+  ['自动', {}],
   ['细网点', { lines: 320, light: 0.14, dark: 0.36 }],
   ['粗网点', { lines: 110, light: 0.2, dark: 0.46 }],
-  ['高对比', { white: 0.62, bp: 0.38, solid: 0.28, light: 0.22, dark: 0.52, grad: 0.5 }],
-  ['柔和', { black: 0.12, white: 0.78, bp: 0.2, solid: 0.16, light: 0.12, dark: 0.32, minRegion: 300 }],
+  ['高对比', { bp: 0.38, solid: 0.28, light: 0.22, dark: 0.52, grad: 0.5 }],
+  ['柔和', { bp: 0.2, solid: 0.16, light: 0.12, dark: 0.32, minRegion: 300 }],
   ['线稿为主', { wp: 0.6, mid: 0.4, light: 0.1, dark: 0.3, grad: 0, fine: 4 }],
   ['线网', { screen: 'line', lines: 150, light: 0.2, dark: 0.45 }],
-  ['深色衣物', { darkSplit: true, hk: 0.6 }],
-  ['风景', { edgeLines: true, darkSplit: true, minRegion: 1200, hk: 0.5 }],
+  ['风景', { edgeLines: true, minRegion: 1200 }],
 ]
 const presetBox = document.getElementById('presets')
-const presetOf = (o) => ({ ...DEFAULTS, ...o, size: P.size })
+const presetOf = (o) => ({ ...DEFAULTS, ...imgAuto, ...o, size: P.size })
+const presetMatch = () => PRESETS.findIndex(([, o]) => { const want = presetOf(o); return Object.keys(want).every((key) => P[key] === want[key]) })
 var presetsReady = false // save() 在预设建好之前也可能被调用（var 提升，不会撞上 const 的暂时性死区）
 function paintPresets() {
   if (!presetsReady) return
-  for (const [i, b] of [...presetBox.children].entries()) {
-    const want = presetOf(PRESETS[i][1])
-    b.setAttribute('aria-pressed', String(Object.keys(want).every((key) => P[key] === want[key])))
-  }
+  const m = presetMatch()
+  for (const [i, b] of [...presetBox.children].entries()) b.setAttribute('aria-pressed', String(i === m))
 }
 function buildPresets() {
   presetBox.replaceChildren(...PRESETS.map(([name, o]) => {
@@ -1433,7 +1475,7 @@ function buildPresets() {
 buildPresets()
 document.getElementById('reset').addEventListener('click', () => {
   const size = P.size
-  P = { ...DEFAULTS }
+  P = { ...presetOf({}), size: DEFAULTS.size }
   syncUI(); save()
   if (size !== P.size && src) prepare()
   schedule()
@@ -1451,9 +1493,34 @@ for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) hold.addEventLi
 hold.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setOrig(true) } })
 hold.addEventListener('keyup', () => setOrig(false))
 // ---------- 载入图片：文件、拖放、粘贴 ----------
-async function loadBlob(blob, name) {
-  try { src = await createImageBitmap(blob); srcName = name || t('粘贴的图片'); prepare(); compute() }
-  catch { hint.textContent = t('这个文件读不出来，换一张 PNG / JPG / WebP 试试') }
+async function loadBlob(blob, name, sampleIdx = -1) {
+  let bmp
+  try { bmp = await createImageBitmap(blob) } catch { hint.textContent = t('这个文件读不出来，换一张 PNG / JPG / WebP 试试'); return }
+  // 换图时沿用当前预设（套上新图的自动值）；手调过的参数原样保留
+  const keep = presetMatch()
+  src = bmp; srcName = name || t('粘贴的图片')
+  prepare()
+  if (keep >= 0) { P = presetOf(PRESETS[keep][1]); syncUI(); save() }
+  for (const [i, b] of [...samplesBox.children].entries()) b.setAttribute('aria-pressed', String(i === sampleIdx))
+  compute()
+}
+// 示例图：路径跟着 favicon 走（语言子目录里的入口页要往上一级）
+const SAMPLES = ['demo-1', 'demo-2']
+const assetUrl = (path) => new URL(path, document.querySelector('link[rel="icon"]').href).href
+const samplesBox = document.getElementById('samples')
+samplesBox.replaceChildren(...SAMPLES.map((name, i) => {
+  const b = document.createElement('button')
+  b.type = 'button'; b.title = `${t('示例')} ${i + 1}`; b.setAttribute('aria-pressed', 'false')
+  b.innerHTML = `<img src="${assetUrl(`samples/${name}-thumb.webp`)}" alt="">`
+  b.addEventListener('click', () => loadSample(i))
+  return b
+}))
+async function loadSample(i) {
+  try {
+    const r = await fetch(assetUrl(`samples/${SAMPLES[i]}.webp`))
+    if (!r.ok) throw new Error(r.status)
+    await loadBlob(await r.blob(), `${t('示例')} ${i + 1}`, i)
+  } catch { hint.textContent = t('打开或拖入一张图片') }
 }
 document.getElementById('file').addEventListener('change', (e) => { const f = e.target.files[0]; if (f) loadBlob(f, f.name) })
 stage.addEventListener('dragover', (e) => { e.preventDefault(); stage.classList.add('drag') })
@@ -1506,54 +1573,11 @@ function drawPreviews() {
 }
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', drawPreviews)
 
-// ---------- 示例图：程序画一个平涂角色（深发、红衣、蓝缎带、淡粉嘴线） ----------
-function sample() {
-  const c = document.createElement('canvas'); c.width = 900; c.height = 1200
-  const g = c.getContext('2d')
-  const sky = g.createLinearGradient(0, 0, 0, 1200); sky.addColorStop(0, '#bfe0f4'); sky.addColorStop(1, '#fbfbf7')
-  g.fillStyle = sky; g.fillRect(0, 0, 900, 1200)
-  g.fillStyle = '#f6c945'
-  g.beginPath()
-  for (let q = 0; q < 10; q++) { const r = q % 2 ? 50 : 120, a = -Math.PI / 2 + (q * Math.PI) / 5; g.lineTo(720 + r * Math.cos(a), 220 + r * Math.sin(a)) }
-  g.closePath(); g.fill()
-  const stroke = () => { g.lineWidth = 5; g.strokeStyle = '#2a2224'; g.stroke() }
-  const body = () => { g.beginPath(); g.moveTo(250, 1200); g.quadraticCurveTo(260, 780, 450, 760); g.quadraticCurveTo(640, 780, 650, 1200) }
-  body(); g.closePath(); g.fillStyle = '#d93a3a'; g.fill(); stroke()
-  g.save(); body(); g.closePath(); g.clip()
-  const sh = g.createLinearGradient(420, 0, 660, 0); sh.addColorStop(0, '#d93a3a'); sh.addColorStop(1, '#7d1f2a')
-  g.fillStyle = sh; g.fillRect(420, 760, 240, 440); g.restore()
-  body(); stroke()
-  g.fillStyle = '#2f6fd6'
-  g.beginPath(); g.moveTo(450, 800); g.lineTo(370, 760); g.lineTo(380, 850); g.closePath(); g.fill(); stroke()
-  g.beginPath(); g.moveTo(450, 800); g.lineTo(530, 760); g.lineTo(520, 850); g.closePath(); g.fill(); stroke()
-  g.fillStyle = '#2b2946'; g.beginPath(); g.ellipse(450, 520, 250, 290, 0, 0, Math.PI * 2); g.fill(); stroke()
-  g.beginPath(); g.ellipse(450, 560, 190, 215, 0, 0, Math.PI * 2); g.fillStyle = '#f8dfcf'; g.fill()
-  g.save(); g.clip(); g.fillStyle = '#efc4b3'; g.beginPath(); g.ellipse(560, 700, 210, 150, -0.3, 0, Math.PI * 2); g.fill(); g.restore()
-  g.beginPath(); g.ellipse(450, 560, 190, 215, 0, 0, Math.PI * 2); stroke()
-  g.fillStyle = '#2b2946'
-  g.beginPath(); g.moveTo(240, 520); g.quadraticCurveTo(260, 270, 450, 260); g.quadraticCurveTo(650, 270, 665, 520)
-  g.lineTo(600, 430); g.lineTo(560, 500); g.lineTo(500, 410); g.lineTo(450, 490); g.lineTo(390, 410); g.lineTo(340, 500); g.lineTo(300, 430); g.closePath(); g.fill(); stroke()
-  const hl = g.createLinearGradient(330, 0, 480, 0); hl.addColorStop(0, '#2b2946'); hl.addColorStop(0.5, '#7a75b0'); hl.addColorStop(1, '#2b2946')
-  g.fillStyle = hl; g.beginPath(); g.ellipse(400, 330, 80, 18, -0.15, 0, Math.PI * 2); g.fill()
-  for (const ex of [375, 525]) {
-    g.fillStyle = '#ffffff'; g.beginPath(); g.ellipse(ex, 575, 40, 48, 0, 0, Math.PI * 2); g.fill()
-    g.fillStyle = '#4a3a78'; g.beginPath(); g.ellipse(ex, 582, 30, 40, 0, 0, Math.PI * 2); g.fill()
-    g.fillStyle = '#251c40'; g.beginPath(); g.ellipse(ex, 588, 16, 22, 0, 0, Math.PI * 2); g.fill()
-    g.fillStyle = '#ffffff'; g.beginPath(); g.ellipse(ex - 10, 565, 9, 11, 0, 0, Math.PI * 2); g.fill()
-    g.beginPath(); g.moveTo(ex - 46, 545); g.quadraticCurveTo(ex, 518, ex + 46, 545); g.lineWidth = 6; g.strokeStyle = '#2a2224'; g.stroke()
-  }
-  g.fillStyle = 'rgba(240,140,150,0.35)'
-  for (const bx of [330, 570]) { g.beginPath(); g.ellipse(bx, 650, 40, 16, 0, 0, Math.PI * 2); g.fill() }
-  g.beginPath(); g.moveTo(435, 690); g.quadraticCurveTo(450, 697, 465, 690); g.lineWidth = 3; g.strokeStyle = '#c87878'; g.stroke()
-  return c
-}
 
 applyLang()
 syncUI()
 drawPreviews()
-src = sample()
-prepare()
-compute()
+loadSample(0)
 </script>
 </body>
 </html>
