@@ -169,7 +169,8 @@ input[type='checkbox'], input[type='range'] { accent-color: var(--accent); }
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer;
 }
 .actions .lang:hover { border-color: var(--border-strong); color: var(--text); }
-.brand > span[data-t] { overflow: hidden; text-overflow: ellipsis; text-box: trim-both cap alphabetic; }
+/* 裁掉行盒留白后字形会超出内容框，overflow: hidden 会把上下切掉：上下补回一点内边距再用负外边距抵掉 */
+.brand > span[data-t] { overflow: hidden; text-overflow: ellipsis; text-box: trim-both cap alphabetic; padding-block: 0.3em; margin-block: -0.3em; }
 :root:is([data-lang='zh'], [data-lang='ja'], [data-lang='ko']) .brand > span[data-t] { translate: 0 0.06em; }
 
 /* ---------- 主体 ---------- */
