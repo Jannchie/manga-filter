@@ -1,5 +1,9 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>漫画网点调参台</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap">
@@ -235,7 +239,8 @@ aside {
 }
 @media (prefers-reduced-motion: reduce) { * { transition-duration: 0.01ms !important; } }
 </style>
-
+</head>
+<body>
 <header class="top">
   <div class="actions">
     <label class="btn primary" for="file"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.05 18H5A2 2 0 013 16V5A2 2 0 015 3H16a2 2 0 012 2v8.05M3 14.79l3.93-3.94a.5.5 0 01.71 0l5.99 5.99M18.5 15.5v6m-3-3h6"/><path d="M14.25 6.75h0" stroke-width="2"/></svg>打开图片<input id="file" type="file" accept="image/*"></label>
@@ -1208,3 +1213,5 @@ src = sample()
 prepare()
 compute()
 </script>
+</body>
+</html>

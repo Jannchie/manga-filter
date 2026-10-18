@@ -1,27 +1,44 @@
+<p align="center">
+  <a href="README.zh-CN.md">中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a>
+</p>
+
 # manga-filter
 
-彩色插画转黑白漫画网点，纯机械运算，不用任何学习模型。
+Turn a color illustration into a black-and-white manga page with screentone, using plain image processing and no machine learning model.
 
-[`web/tone-bench.html`](web/tone-bench.html) 是一个单文件网页：用浏览器直接打开，拖入或粘贴图片，用滑块实时调参。计算全部在浏览器的 Web Worker 里完成，不需要安装任何东西。
+**Try it: <https://jannchie.github.io/manga-filter/>**
 
-## 做了什么
+The whole tool is [`index.html`](index.html), a single HTML file. Open it in a browser, drop or paste an image, and tune the result with sliders while it updates. All processing runs in a Web Worker in your browser, so there is nothing to install and no image leaves your machine.
 
-管线移植自 [ashukae/ComfyUI-MangaScreen](https://github.com/ashukae/ComfyUI-MangaScreen) 的 Manga Levels + Manga Finish（MIT，许可证见 [`licenses/`](licenses/)），在它的基础上加了：
+## Usage
 
-- **细线稿**：在原图 L* 上做双尺度 DoG，补回嘴、鼻、浅色轮廓。原版要外接神经网络线稿（Manga Lineart）才有这些线。
-- **饱和色提亮**：按 Helmholtz–Kohlrausch 效应调亮高饱和色，红衣服不再压成黑块。
-- **暗部分层**（默认关）：大块实黑里较亮的部分改成深网点，适合黑裙子这类深灰布料；深色头发会被误伤。
-- **淡边描线**（默认关）：Canny 边缘里只留又长又细的直线段，给雾中建筑补轮廓。
-- **10 种网点**：圆点、方点、菱形点、链点、平行线、交叉线、波纹线、砂目、同心圆、集中线。
-- **出图分辨率独立**：网点间距不足 10 px 时放大出图，圆点才画得圆。
+The interface is in Chinese for now; button names below are followed by the label shown on screen.
 
-预览可以滚轮缩放、拖动平移，`0` 适应窗口，`1` 为 1:1。
+1. Open <https://jannchie.github.io/manga-filter/>, or open `index.html` in a recent browser.
+2. Click **Open image** (打开图片), drag an image onto the canvas, or paste one from the clipboard.
+3. Adjust the sliders. Hold **Hold to see original** (按住看原图) to compare with the source.
+4. **Copy parameters** (复制参数) copies the current settings as JSON; **Reset to baseline** (恢复基线) restores the defaults.
 
-## 和 Qwen 版的差距
+In the preview, scroll to zoom around the pointer, drag to pan, and double-click to switch between fit-to-window and 1:1. Press `0` to fit and `1` for 1:1. Click a slider to select it, then scroll to nudge it (Shift for ×10), or double-click it to reset.
 
-原版还有一条用 Qwen-Image 先把彩图「重画成漫画」再接 Manga Finish 的流程。拿原版作者 `examples/` 里同一张图的 Qwen 结果对比：
+## What it does
 
-- **线稿清晰的平涂人物**：基本追平，细线稿让眼睛、手指、衣褶的线条比 Qwen 版还多。明暗上的差别主要来自色阶设置，调低「白场」即可接近。
-- **背景、复杂场景**：差距在需要语义判断的地方。黑裙子该分成深网点和实黑，可以用暗部分层逼近，但要按图调「分层下限」；Qwen 能给雾中高楼画出轮廓和窗格，淡边描线只补得出几条直边；树丛整体偏黑偏重。
+The pipeline is a port of the Manga Levels and Manga Finish nodes from [ashukae/ComfyUI-MangaScreen](https://github.com/ashukae/ComfyUI-MangaScreen) (MIT, license in [`licenses/`](licenses/)): grayscale levels, an ink layer of lines and solid blacks, descreening and flattening, a tone plan with small regions merged away, gradation tone, a page-aligned screen, and white lines cut into solid blacks. On top of that it adds:
 
-机械方法只能用阈值逼近「这是什么、该怎么画」，所以背景类图需要按图调参。
+- **Fine lines.** A two-scale difference of Gaussians on the original L\* channel brings back mouths, noses and pale outlines. The original needs an external neural line extractor (Manga Lineart) to get these.
+- **Saturated color lift.** Brightens saturated colors following the Helmholtz–Kohlrausch effect, so a red coat no longer turns into a black block.
+- **Dark split** (off by default). Turns the lighter part of a large solid black into dark tone, which suits dark gray fabric such as a black skirt. It can also break up dark hair, so enable it per image.
+- **Faint edge lines** (off by default). Keeps only long, thin, straight segments from Canny edges to outline buildings in haze.
+- **Ten screen types.** Round dot, square dot, diamond dot, chain dot, line, cross line, wave line, sand grain, concentric rings and speed lines (radial).
+- **Separate print resolution.** When the screen pitch would be under 10 px, the page is printed at a higher resolution, so round dots actually come out round.
+
+Sizes are normalized to a 1024 px wide image, so the same settings give the same look at any resolution.
+
+## Compared with the Qwen workflow
+
+ComfyUI-MangaScreen also has a workflow that first redraws the image as manga with Qwen-Image and then runs Manga Finish. Compared on the same inputs as the examples in that repository:
+
+- **Flat-colored characters with clean line art** come out about even. The fine lines add more detail to eyes, fingers and folds than the Qwen version has. Differences in tone come mostly from the levels settings; lowering **White point** (白场) gets close.
+- **Backgrounds and busy scenes** fall behind where the edit model makes semantic choices. A black skirt split into dark tone and solid black can be approximated with dark split, but its floor needs tuning per image. Qwen draws outlines and windows on buildings in haze, while faint edge lines recover only a few straight edges. Foliage comes out darker and heavier.
+
+Image processing can only approximate "what is this and how should it be drawn" with thresholds, so background-heavy images need per-image tuning.
