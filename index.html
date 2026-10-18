@@ -186,6 +186,23 @@ main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1
   color: var(--accent); font-weight: 600; pointer-events: none;
 }
 .stage canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+/* 计算 / 载入中：顶部居中的浮标（转圈 + 进度），旧结果调暗表示已过时；超过 150 ms 才出现，快的调整不闪 */
+.busy {
+  position: absolute; top: 12px; left: 50%; z-index: 1; translate: -50% 0; overflow: hidden;
+  display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 999px; box-shadow: var(--shadow-sm);
+  font-size: var(--fs-xs); color: var(--text-muted); pointer-events: none;
+}
+.busy[hidden] { display: none; }
+.busy #busyPct { min-width: 3ch; text-align: right; color: var(--text); }
+.busy #busyPct:empty { display: none; }
+.spin { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--border-strong); border-top-color: var(--accent); animation: spin .8s linear infinite; }
+@keyframes spin { to { rotate: 1turn; } }
+.busy-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; }
+.busy-bar i { position: absolute; inset: 0; background: var(--accent); transform-origin: left; transform: scaleX(0); transition: transform .2s ease; }
+.stage canvas { transition: opacity .2s ease; }
+.stage.is-busy canvas { opacity: .6; }
+@media (prefers-reduced-motion: reduce) { .spin { animation-duration: 2.4s; } }
 /* 缩放比例浮标（同 my-home 画布右下角的缩放条） */
 .zoom {
   position: absolute; right: 12px; bottom: 12px; z-index: 1; display: flex; align-items: center; gap: 2px; padding: 2px;
@@ -337,6 +354,7 @@ aside {
 <main>
   <div class="stage" id="stage">
     <canvas id="out" aria-label="处理结果" data-t-aria="处理结果"></canvas>
+    <div class="busy" id="busy" role="status" aria-live="polite" hidden><span class="spin" aria-hidden="true"></span><span id="busyText" data-t="计算中…">计算中…</span><span class="num" id="busyPct"></span><i class="busy-bar" aria-hidden="true"><i id="busyBar"></i></i></div>
     <div class="zoom" role="group" aria-label="缩放" data-t-aria="缩放">
       <button type="button" id="zoomOut" title="缩小" aria-label="缩小" data-t-title="缩小" data-t-aria="缩小">−</button>
       <output id="zoomLabel" class="num">100%</output>
@@ -822,7 +840,7 @@ async function stagePrint(P, masks, cover) {  // 网点在出图分辨率上印
   const page = new Uint8Array(PW * PH), inv = 1 / R
   let lastYield = performance.now()
   for (let y = 0, o = 0; y < PH; y++) {
-    if (performance.now() - lastYield > 30) { await checkpoint(); lastYield = performance.now() }
+    if (performance.now() - lastYield > 30) { report(0.6 + (0.4 * y) / PH); await checkpoint(); lastYield = performance.now() }
     const fy = (y + 0.5) * inv - 0.5
     for (let x = 0; x < PW; x++, o++) {
       const fx = (x + 0.5) * inv - 0.5
@@ -845,7 +863,8 @@ let pending = null, busy = false, gen = 0
 const ABORT = Symbol('abort'), chan = new MessageChannel()
 let wake = null
 chan.port1.onmessage = () => wake?.()
-let jobGen = 0
+let jobGen = 0, jobId = 0
+const report = (p) => postMessage({ id: jobId, progress: p })
 async function checkpoint() {
   await new Promise((r) => { wake = r; chan.port2.postMessage(0) })
   if (pending || gen !== jobGen) throw ABORT
@@ -866,15 +885,15 @@ async function run() {
   busy = true
   while (pending) {
     const { P, id } = pending; pending = null
-    jobGen = gen
+    jobGen = gen; jobId = id
     const t0 = performance.now()
     try {
-      const L = stageLevels(P); await checkpoint()
-      const inkSt = stageInk(P, L); await checkpoint()
-      const pen = P.pen ? stagePen(P) : null; await checkpoint()
-      const edges = P.edgeLines ? stageEdges(P) : null; await checkpoint()
-      const toneSt = stageTone(P, inkSt); await checkpoint()
-      const masks = stageMasks(P, inkSt, toneSt, pen, edges), cover = stageCover(P, toneSt); await checkpoint()
+      const L = stageLevels(P); report(0.05); await checkpoint()
+      const inkSt = stageInk(P, L); report(0.25); await checkpoint()
+      const pen = P.pen ? stagePen(P) : null; report(0.3); await checkpoint()
+      const edges = P.edgeLines ? stageEdges(P) : null; report(0.35); await checkpoint()
+      const toneSt = stageTone(P, inkSt); report(0.55); await checkpoint()
+      const masks = stageMasks(P, inkSt, toneSt, pen, edges), cover = stageCover(P, toneSt); report(0.6); await checkpoint()
       const { page, R } = await stagePrint(P, masks, cover)
       postMessage({ id, page, R, ms: performance.now() - t0, pitch: lattice(P) }, [page.buffer])
     } catch (err) {
@@ -1164,7 +1183,8 @@ function autoParams(gray, L, V) {
   const r2 = (v) => Math.round(v * 100) / 100
   return { black: r2(black), white: r2(white), hk, lines: clamp(Math.round((D.lines * Math.sqrt(Math.max(1, W / H))) / 10) * 10, 40, 600) }
 }
-function prepare() {
+// newImage：换了图才清掉旧结果、重算自动值；只改处理尺寸时旧结果留着（调暗）直到新结果出来
+function prepare(newImage = false) {
   const s = scaleFor()
   W = Math.max(1, Math.round(src.width * s)); H = Math.max(1, Math.round(src.height * s))
   const c = document.createElement('canvas'); c.width = W; c.height = H
@@ -1184,20 +1204,37 @@ function prepare() {
     V[i] = l + (2.5 - 0.025 * l) * (0.116 * Math.abs(Math.sin((Math.atan2(bb, a) - Math.PI / 2) / 2)) + 0.085) * Math.hypot(a, bb)
   }
   autoFit = true
-  resultImg = null
-  imgAuto = autoParams(gray, L, V)
+  if (newImage) { resultImg = null; imgAuto = autoParams(gray, L, V) }
   worker.postMessage({ type: 'image', w: W, h: H, gray, L, V }, [gray.buffer, L.buffer, V.buffer])
+}
+
+const busyEl = document.getElementById('busy'), busyText = document.getElementById('busyText')
+const busyPct = document.getElementById('busyPct'), busyBar = document.getElementById('busyBar')
+let busyTimer = 0
+function setProgress(p) {
+  busyPct.textContent = p > 0 ? `${Math.round(p * 100)}%` : ''
+  busyBar.style.transform = `scaleX(${p})`
+}
+function setBusy(key) {
+  busyText.dataset.t = key; busyText.textContent = t(key); setProgress(0)
+  if (busyEl.hidden && !busyTimer) busyTimer = setTimeout(() => { busyTimer = 0; busyEl.hidden = false; stage.classList.add('is-busy') }, 150)
+}
+function clearBusy() {
+  clearTimeout(busyTimer); busyTimer = 0
+  busyEl.hidden = true; stage.classList.remove('is-busy')
 }
 
 let showOriginal = false
 function compute() {
   if (!W) return
   hint.textContent = `${srcName} · ${W} × ${H} px · ${t('计算中…')}`
+  setBusy('计算中…')
   worker.postMessage({ type: 'run', P: { ...P }, id: ++reqId })
 }
 worker.onmessage = (e) => {
-  const { id, page, R, ms, pitch } = e.data
+  const { id, page, R, ms, pitch, progress } = e.data
   if (id !== reqId) return
+  if (progress !== undefined) return setProgress(progress)
   pitchInfo = pitch; lastMs = ms
   rows.get('lines')?.(); rows.get('angle')?.()
   const PW = W * R, PH = H * R
@@ -1207,6 +1244,7 @@ worker.onmessage = (e) => {
   resultImg = img
   draw()
   hint.textContent = `${srcName} · ${t('出图')} ${PW} × ${PH} px · ${Math.round(ms)} ms`
+  clearBusy()
 }
 function draw() {
   if (!W) return
@@ -1499,11 +1537,12 @@ hold.addEventListener('keyup', () => setOrig(false))
 // ---------- 载入图片：文件、拖放、粘贴 ----------
 async function loadBlob(blob, name, sampleIdx = -1) {
   let bmp
-  try { bmp = await createImageBitmap(blob) } catch { hint.textContent = t('这个文件读不出来，换一张 PNG / JPG / WebP 试试'); return }
+  setBusy('载入中…')
+  try { bmp = await createImageBitmap(blob) } catch { clearBusy(); hint.textContent = t('这个文件读不出来，换一张 PNG / JPG / WebP 试试'); return }
   // 换图时沿用当前预设（套上新图的自动值）；手调过的参数原样保留
   const keep = presetMatch()
   src = bmp; srcName = name || t('粘贴的图片')
-  prepare()
+  prepare(true)
   if (keep >= 0) { P = presetOf(PRESETS[keep][1]); syncUI(); save() }
   for (const [i, b] of [...samplesBox.children].entries()) b.setAttribute('aria-pressed', String(i === sampleIdx))
   compute()
@@ -1520,11 +1559,12 @@ samplesBox.replaceChildren(...SAMPLES.map((name, i) => {
   return b
 }))
 async function loadSample(i) {
+  setBusy('载入中…')
   try {
     const r = await fetch(assetUrl(`samples/${SAMPLES[i]}.webp`))
     if (!r.ok) throw new Error(r.status)
     await loadBlob(await r.blob(), `${t('示例')} ${i + 1}`, i)
-  } catch { hint.textContent = t('打开或拖入一张图片') }
+  } catch { clearBusy(); hint.textContent = t('打开或拖入一张图片') }
 }
 document.getElementById('file').addEventListener('change', (e) => { const f = e.target.files[0]; if (f) loadBlob(f, f.name) })
 stage.addEventListener('dragover', (e) => { e.preventDefault(); stage.classList.add('drag') })
