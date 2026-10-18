@@ -1,0 +1,55 @@
+<!-- Markdown alternate of https://jannchie.github.io/manga-filter/ -->
+# manga-filter
+
+Turn a color illustration into a black-and-white manga page with screentone, using plain image processing and no machine learning model.
+
+**Try it: <https://jannchie.github.io/manga-filter/>**
+
+The whole tool is [`index.html`](https://github.com/Jannchie/manga-filter/blob/master/index.html), a single HTML file. Open it in a browser, drop or paste an image, and tune the result with sliders while it updates. All processing runs in a Web Worker in your browser, so there is nothing to install and no image leaves your machine.
+
+## Usage
+
+1. Open <https://jannchie.github.io/manga-filter/>, or open `index.html` in a recent browser.
+2. Click **Open image**, drag an image onto the canvas, or paste one from the clipboard.
+3. Adjust the sliders. Hold **Hold to see original** to compare with the source.
+4. **Copy parameters** copies the current settings as JSON; **Reset to baseline** restores the defaults.
+
+In the preview, scroll to zoom around the pointer, drag to pan, and double-click to switch between fit-to-window and 1:1. Press `0` to fit and `1` for 1:1. Click a slider to select it, then scroll to nudge it (Shift for ×10), or double-click it to reset.
+
+## What it does
+
+The pipeline is a port of the Manga Levels and Manga Finish nodes from [ashukae/ComfyUI-MangaScreen](https://github.com/ashukae/ComfyUI-MangaScreen) (MIT, license in [`licenses/`](https://github.com/Jannchie/manga-filter/blob/master/licenses/)): grayscale levels, an ink layer of lines and solid blacks, descreening and flattening, a tone plan with small regions merged away, gradation tone, a page-aligned screen, and white lines cut into solid blacks. On top of that it adds:
+
+- **Fine lines.** A two-scale difference of Gaussians on the original L\* channel brings back mouths, noses and pale outlines. The original needs an external neural line extractor (Manga Lineart) to get these.
+- **Saturated color lift.** Brightens saturated colors following the Helmholtz–Kohlrausch effect, so a red coat no longer turns into a black block.
+- **Dark split** (off by default). Turns the lighter part of a large solid black into dark tone, which suits dark gray fabric such as a black skirt. It can also break up dark hair, so enable it per image.
+- **Faint edge lines** (off by default). Keeps only long, thin, straight segments from Canny edges to outline buildings in haze.
+- **Ten screen types.** Round dot, square dot, diamond dot, chain dot, line, cross line, wave line, sand grain, concentric rings and speed lines (radial).
+- **Separate print resolution.** When the screen pitch would be under 10 px, the page is printed at a higher resolution, so round dots actually come out round.
+
+Sizes are normalized to a 1024 px wide image, so the same settings give the same look at any resolution.
+
+## Development
+
+The page is built from [`src/app.html`](https://github.com/Jannchie/manga-filter/blob/master/src/app.html) (the tool) and [`src/seo.mjs`](https://github.com/Jannchie/manga-filter/blob/master/src/seo.mjs) (titles and descriptions per language). After editing them, run:
+
+```sh
+node scripts/build.mjs
+```
+
+It writes the English entry page `index.html`, the `zh/`, `ja/` and `ko/` entry pages with their own meta tags, `sitemap.xml`, `robots.txt`, `manifest.webmanifest`, and the files for LLMs and agents: `llms.txt`, `llms-full.txt` and `index.md`. It needs only Node.js, with no dependencies.
+
+## Compared with the Qwen workflow
+
+ComfyUI-MangaScreen also has a workflow that first redraws the image as manga with Qwen-Image and then runs Manga Finish. Compared on the same inputs as the examples in that repository:
+
+- **Flat-colored characters with clean line art** come out about even. The fine lines add more detail to eyes, fingers and folds than the Qwen version has. Differences in tone come mostly from the levels settings; lowering **White point** gets close.
+- **Backgrounds and busy scenes** fall behind where the edit model makes semantic choices. A black skirt split into dark tone and solid black can be approximated with dark split, but its floor needs tuning per image. Qwen draws outlines and windows on buildings in haze, while faint edge lines recover only a few straight edges. Foliage comes out darker and heavier.
+
+Image processing can only approximate "what is this and how should it be drawn" with thresholds, so background-heavy images need per-image tuning.
+
+## Other languages
+
+- [漫画网点调参台](https://jannchie.github.io/manga-filter/zh/)
+- [漫画トーン調整台](https://jannchie.github.io/manga-filter/ja/)
+- [만화 톤 조정대](https://jannchie.github.io/manga-filter/ko/)

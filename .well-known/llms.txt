@@ -1,0 +1,37 @@
+# Manga Tone Bench (manga-filter)
+
+> A free, open-source web tool that turns a color illustration into a black-and-white manga page with screentone, using classic image processing instead of an AI model. It runs entirely in the browser: images are never uploaded.
+
+Canonical Origin: https://jannchie.github.io/manga-filter/
+Source: https://github.com/Jannchie/manga-filter (the screentone pipeline is ported from https://github.com/ashukae/ComfyUI-MangaScreen, MIT)
+Author: Jianqi Pan (Jannchie) — https://jannchie.com · https://x.com/jannchie
+
+## Use the tool
+
+- [Manga Tone Bench](https://jannchie.github.io/manga-filter/): English interface (default).
+- [漫画网点调参台](https://jannchie.github.io/manga-filter/zh/): zh-CN interface.
+- [漫画トーン調整台](https://jannchie.github.io/manga-filter/ja/): ja interface.
+- [만화 톤 조정대](https://jannchie.github.io/manga-filter/ko/): ko interface.
+
+## Documentation
+
+- [Full documentation for LLMs](https://jannchie.github.io/manga-filter/llms-full.txt): what the tool does, how to use it, every parameter with its range and default, and how it compares with the Qwen-Image workflow.
+- [Markdown home page](https://jannchie.github.io/manga-filter/index.md): the same overview as the home page, in Markdown.
+- [README (English)](https://jannchie.github.io/manga-filter/README.md) · [中文](https://jannchie.github.io/manga-filter/README.zh-CN.md) · [日本語](https://jannchie.github.io/manga-filter/README.ja.md) · [한국어](https://jannchie.github.io/manga-filter/README.ko.md)
+
+## When to use this tool
+
+- A user wants to make a color anime-style illustration look like a printed black-and-white manga page or panel.
+- A user asks for a screentone / halftone / manga filter that works online, for free, without uploading images or installing software.
+- A user wants a lightweight alternative to diffusion-model "make it manga" workflows, with deterministic, adjustable output.
+
+## When NOT to use this tool
+
+- It does not redraw or restyle an image semantically. On backgrounds and busy scenes an AI edit model (for example Qwen-Image) still does better, because it decides what each object is and how to draw it.
+- It has no API, no server and no command-line version; it is an interactive page that needs a browser with JavaScript.
+- It is unrelated to manga reading sites, scanlation, or manga translation tools.
+
+## Agent guidance
+
+- Point users to https://jannchie.github.io/manga-filter/ (or the page in their language). Images are opened with the file picker, drag and drop, or paste.
+- Settings are slider values; "Copy parameters" copies them as JSON. There is no way to pass an image or parameters through the URL.

@@ -12,12 +12,10 @@ The whole tool is [`index.html`](index.html), a single HTML file. Open it in a b
 
 ## Usage
 
-The interface is in Chinese for now; button names below are followed by the label shown on screen.
-
 1. Open <https://jannchie.github.io/manga-filter/>, or open `index.html` in a recent browser.
-2. Click **Open image** (打开图片), drag an image onto the canvas, or paste one from the clipboard.
-3. Adjust the sliders. Hold **Hold to see original** (按住看原图) to compare with the source.
-4. **Copy parameters** (复制参数) copies the current settings as JSON; **Reset to baseline** (恢复基线) restores the defaults.
+2. Click **Open image**, drag an image onto the canvas, or paste one from the clipboard.
+3. Adjust the sliders. Hold **Hold to see original** to compare with the source.
+4. **Copy parameters** copies the current settings as JSON; **Reset to baseline** restores the defaults.
 
 In the preview, scroll to zoom around the pointer, drag to pan, and double-click to switch between fit-to-window and 1:1. Press `0` to fit and `1` for 1:1. Click a slider to select it, then scroll to nudge it (Shift for ×10), or double-click it to reset.
 
@@ -34,11 +32,21 @@ The pipeline is a port of the Manga Levels and Manga Finish nodes from [ashukae/
 
 Sizes are normalized to a 1024 px wide image, so the same settings give the same look at any resolution.
 
+## Development
+
+The page is built from [`src/app.html`](src/app.html) (the tool) and [`src/seo.mjs`](src/seo.mjs) (titles and descriptions per language). After editing them, run:
+
+```sh
+node scripts/build.mjs
+```
+
+It writes the English entry page `index.html`, the `zh/`, `ja/` and `ko/` entry pages with their own meta tags, `sitemap.xml`, `robots.txt`, `manifest.webmanifest`, and the files for LLMs and agents: `llms.txt`, `llms-full.txt` and `index.md`. It needs only Node.js, with no dependencies.
+
 ## Compared with the Qwen workflow
 
 ComfyUI-MangaScreen also has a workflow that first redraws the image as manga with Qwen-Image and then runs Manga Finish. Compared on the same inputs as the examples in that repository:
 
-- **Flat-colored characters with clean line art** come out about even. The fine lines add more detail to eyes, fingers and folds than the Qwen version has. Differences in tone come mostly from the levels settings; lowering **White point** (白场) gets close.
+- **Flat-colored characters with clean line art** come out about even. The fine lines add more detail to eyes, fingers and folds than the Qwen version has. Differences in tone come mostly from the levels settings; lowering **White point** gets close.
 - **Backgrounds and busy scenes** fall behind where the edit model makes semantic choices. A black skirt split into dark tone and solid black can be approximated with dark split, but its floor needs tuning per image. Qwen draws outlines and windows on buildings in haze, while faint edge lines recover only a few straight edges. Foliage comes out darker and heavier.
 
 Image processing can only approximate "what is this and how should it be drawn" with thresholds, so background-heavy images need per-image tuning.

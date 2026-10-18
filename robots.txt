@@ -1,0 +1,45 @@
+# robots.txt for https://jannchie.github.io/manga-filter/
+# Manga Tone Bench is an open-source (MIT) browser tool. Search, AI answers and training are all welcome.
+
+User-agent: *
+Allow: /
+
+# --- AI search and agent grounding ---
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# --- AI training ---
+User-agent: GPTBot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# Content Signals (draft): purpose-based permissions
+Content-Signal: search=yes, ai-input=yes, ai-train=yes
+
+Sitemap: https://jannchie.github.io/manga-filter/sitemap.xml

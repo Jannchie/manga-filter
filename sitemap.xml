@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://jannchie.github.io/manga-filter/</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jannchie.github.io/manga-filter/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://jannchie.github.io/manga-filter/zh/"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://jannchie.github.io/manga-filter/ja/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://jannchie.github.io/manga-filter/ko/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jannchie.github.io/manga-filter/"/>
+  </url>
+  <url>
+    <loc>https://jannchie.github.io/manga-filter/zh/</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jannchie.github.io/manga-filter/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://jannchie.github.io/manga-filter/zh/"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://jannchie.github.io/manga-filter/ja/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://jannchie.github.io/manga-filter/ko/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jannchie.github.io/manga-filter/"/>
+  </url>
+  <url>
+    <loc>https://jannchie.github.io/manga-filter/ja/</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jannchie.github.io/manga-filter/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://jannchie.github.io/manga-filter/zh/"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://jannchie.github.io/manga-filter/ja/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://jannchie.github.io/manga-filter/ko/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jannchie.github.io/manga-filter/"/>
+  </url>
+  <url>
+    <loc>https://jannchie.github.io/manga-filter/ko/</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jannchie.github.io/manga-filter/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://jannchie.github.io/manga-filter/zh/"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://jannchie.github.io/manga-filter/ja/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://jannchie.github.io/manga-filter/ko/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jannchie.github.io/manga-filter/"/>
+  </url>
+</urlset>

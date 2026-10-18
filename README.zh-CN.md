@@ -32,6 +32,16 @@
 
 所有尺寸都按 1024 像素宽归一，同一组参数在任何分辨率下效果相同。
 
+## 开发
+
+页面由 [`src/app.html`](src/app.html)（工具本身）和 [`src/seo.mjs`](src/seo.mjs)（各语言的标题与描述）构建。修改后运行：
+
+```sh
+node scripts/build.mjs
+```
+
+它会生成英文入口页 `index.html`、各自带 meta 的 `zh/`、`ja/`、`ko/` 入口页、`sitemap.xml`、`robots.txt`、`manifest.webmanifest`，以及给 LLM 和 agent 读的 `llms.txt`、`llms-full.txt`、`index.md`。只需要 Node.js，没有其他依赖。
+
 ## 和 Qwen 流程的对比
 
 ComfyUI-MangaScreen 还有一条流程：先用 Qwen-Image 把图重画成漫画，再接 Manga Finish。用该仓库示例里的同一组输入对比：

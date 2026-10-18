@@ -1,0 +1,22 @@
+{
+  "name": "Manga Tone Bench",
+  "short_name": "Tone Bench",
+  "description": "Turn a color illustration into a black-and-white manga page with screentone. Ten screen types, line art, solid blacks and gradation, tuned live with sliders. Free, no sign-up, no AI model, and images never leave your browser.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fbfbfc",
+  "theme_color": "#0e0e11",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
