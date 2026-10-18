@@ -23,7 +23,7 @@ The pipeline is a port of the Manga Levels and Manga Finish nodes from [ashukae/
 - **Fine lines.** A two-scale difference of Gaussians on the original L\* channel brings back mouths, noses and pale outlines. The original needs an external neural line extractor (Manga Lineart) to get these.
 - **Saturated color lift.** Brightens saturated colors following the Helmholtz–Kohlrausch effect, so a red coat no longer turns into a black block.
 - **Dark split** (on by default). Turns the lighter part of a large solid black into dark tone, which suits dark gray fabric such as a black skirt and gives dark clothes some volume. If it breaks up dark hair on an image, turn it off.
-- **Faint edge lines** (off by default). Keeps only long, thin, straight segments from Canny edges to outline buildings in haze.
+- **Faint edge lines** (on by default). Keeps only long, thin, straight segments from Canny edges to outline buildings in haze.
 - **Automatic defaults.** On load, the levels are set from the image's brightness distribution (pure white backgrounds are ignored), so dark scenes no longer turn into a black page, and the saturated color lift is enabled when the image has many vivid colors.
 - **Ten screen types.** Round dot, square dot, diamond dot, chain dot, line, cross line, wave line, sand grain, concentric rings and speed lines (radial).
 - **Separate print resolution.** When the screen pitch would be under 10 px, the page is printed at a higher resolution, so round dots actually come out round.
