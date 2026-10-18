@@ -2,28 +2,26 @@
 
 彩色插画转黑白漫画网点，纯机械运算，不用任何学习模型。
 
-主线是 [`web/tone-bench.html`](web/tone-bench.html)：单文件网页，直接用浏览器打开，拖入图片后用滑块实时调参，计算全部在浏览器的 Web Worker 里完成，不依赖 Python。
+[`web/tone-bench.html`](web/tone-bench.html) 是一个单文件网页：用浏览器直接打开，拖入或粘贴图片，用滑块实时调参。计算全部在浏览器的 Web Worker 里完成，不需要安装任何东西。
 
-## 网页调参台
+## 做了什么
 
 管线移植自 [ashukae/ComfyUI-MangaScreen](https://github.com/ashukae/ComfyUI-MangaScreen) 的 Manga Levels + Manga Finish（MIT，许可证见 [`licenses/`](licenses/)），在它的基础上加了：
 
 - **细线稿**：在原图 L* 上做双尺度 DoG，补回嘴、鼻、浅色轮廓。原版要外接神经网络线稿（Manga Lineart）才有这些线。
 - **饱和色提亮**：按 Helmholtz–Kohlrausch 效应调亮高饱和色，红衣服不再压成黑块。
-- **暗部分层**（默认关）：大块实黑里较亮的部分改成深网点，适合黑裙子这类深灰布料。
-- **淡边描线**（默认关）：Canny 边缘里只留又长又细的直线段，给雾中建筑描轮廓。
+- **暗部分层**（默认关）：大块实黑里较亮的部分改成深网点，适合黑裙子这类深灰布料；深色头发会被误伤。
+- **淡边描线**（默认关）：Canny 边缘里只留又长又细的直线段，给雾中建筑补轮廓。
 - **10 种网点**：圆点、方点、菱形点、链点、平行线、交叉线、波纹线、砂目、同心圆、集中线。
 - **出图分辨率独立**：网点间距不足 10 px 时放大出图，圆点才画得圆。
 
 预览可以滚轮缩放、拖动平移，`0` 适应窗口，`1` 为 1:1。
 
-## Python 原型
+## 和 Qwen 版的差距
 
-早期的实验原型，按调色板分档（Lab k-means → 底色 / 阴影配对 → HK 校正明度上的单调分档）：
+原版还有一条用 Qwen-Image 先把彩图「重画成漫画」再接 Manga Finish 的流程。拿原版作者 `examples/` 里同一张图的 Qwen 结果对比：
 
-```sh
-uv run manga-filter sample <图片目录> --n 12 -o out
-uv run manga-filter run a.png b.jpg -o out
-```
+- **线稿清晰的平涂人物**：基本追平，细线稿让眼睛、手指、衣褶的线条比 Qwen 版还多。明暗上的差别主要来自色阶设置，调低「白场」即可接近。
+- **背景、复杂场景**：差距在需要语义判断的地方。黑裙子该分成深网点和实黑，可以用暗部分层逼近，但要按图调「分层下限」；Qwen 能给雾中高楼画出轮廓和窗格，淡边描线只补得出几条直边；树丛整体偏黑偏重。
 
-`compare/` 下是对比脚本：和原版 Manga-Lite（`vs_original.py`）、和原版作者示例里的 Qwen 版（`vs_qwen.py`、`qwen_*.py`）。原版仓库要先克隆到 `ref/ComfyUI-MangaScreen`。对比图本身不入库。
+机械方法只能用阈值逼近「这是什么、该怎么画」，所以背景类图需要按图调参。
