@@ -114,7 +114,7 @@ Sizes are normalized to a 1024 px wide image, so the same settings give the same
 - **Split floor**: 0.05–0.4, default 0.2. Only pixels brighter than this in the original become tone. Dark gray fabric and a black bag are often very close, so tune it per image.
 - **Faint edge sensitivity** (L*/px): 0.4–5, default 1.2. Lower catches fainter edges in haze, but also more edges you may not want.
 - **Shortest segment** (px): 8–120, default 28. At 1024 px width. Only straight segments longer than this are drawn.
-- **Working size (long side)** (px): 600–2400, default 1200. Larger is sharper and slower. Settings are normalized to image width, so the look stays the same at any size. Small images are upscaled so the screen pitch is at least 5 px.
+- **Working size (long side)** (px): 600–2400, default 1200. Larger is sharper and slower. Settings are normalized to image width, so the look stays the same at any size.
 
 ### Switches
 

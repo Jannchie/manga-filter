@@ -156,7 +156,6 @@ input[type='checkbox'], input[type='range'] { accent-color: var(--accent); }
   font-weight: 700; font-size: var(--fs-md); letter-spacing: -.01em; white-space: nowrap;
 }
 .brand svg { color: var(--accent); }
-.brand .ver { color: var(--text-muted); font-size: var(--fs-xs); font-weight: 400; }
 .actions .lang {
   margin-left: auto; height: var(--control-h); padding: 0 6px; font: inherit; font-size: var(--fs-xs); font-weight: 400; color: var(--text-muted);
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer;
@@ -259,7 +258,12 @@ aside {
 .range-input::-webkit-slider-thumb { appearance: none; width: var(--knob); height: var(--knob); }
 .range-input::-moz-range-thumb { width: var(--knob); height: var(--knob); border: 0; }
 .range-input:focus { outline: none; }
-.slider .note { font-size: var(--fs-xs); color: var(--text-faint); line-height: 1.5; }
+.slider-head label[title] { cursor: help; text-decoration: underline dotted var(--text-faint); text-underline-offset: 3px; }
+/* 预设：一排小按钮，选中态同网点卡片 */
+.presets { display: flex; flex-wrap: wrap; gap: 4px; }
+.presets button { height: 26px; padding: 0 10px; font-size: var(--fs-xs); font-weight: 400; background: transparent; color: var(--text-muted); }
+.presets button:hover { background: var(--hover); color: var(--text); }
+.presets button[aria-pressed='true'] { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: inset 0 0 0 1px var(--border-strong), var(--shadow-sm); }
 .rows { display: grid; gap: 14px; }
 /* 网点类型：带预览的卡片，选中态同分段控件（一层底 + 内描边） */
 .screens { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
@@ -317,7 +321,7 @@ aside {
       <option value="en">English</option><option value="zh">中文</option><option value="ja">日本語</option><option value="ko">한국어</option>
     </select>
   </div>
-  <div class="brand"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1017 0 8.5 8.5 0 10-17 0"/><path d="M12 3.5a8.5 8.5 0 010 17z" fill="currentColor"/></svg><span data-t="漫画网点调参台">漫画网点调参台</span><span class="ver" data-t="无模型">无模型</span></div>
+  <div class="brand"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1017 0 8.5 8.5 0 10-17 0"/><path d="M12 3.5a8.5 8.5 0 010 17z" fill="currentColor"/></svg><span data-t="漫画网点调参台">漫画网点调参台</span></div>
 </header>
 
 <main>
@@ -333,13 +337,17 @@ aside {
   </div>
   <aside id="panel">
     <section class="group">
+      <h2 class="label" data-t="预设">预设</h2>
+      <div class="presets" id="presets" role="group" aria-label="预设" data-t-aria="预设"></div>
+    </section>
+    <section class="group">
       <h2 class="label" data-t="明暗">明暗</h2>
       <div class="rows" data-group="light"></div>
     </section>
     <section class="group">
       <h2 class="label" data-t="分档">分档</h2>
       <div class="rows" data-group="levels"></div>
-      <label class="check"><input id="darkSplit" type="checkbox"> <span data-t="暗部分层（大块实黑里较亮的部分改成深网点；适合黑裙子这类深灰布料，深色头发会被误伤）">暗部分层（大块实黑里较亮的部分改成深网点；适合黑裙子这类深灰布料，深色头发会被误伤）</span></label>
+      <label class="check" title="暗部分层（大块实黑里较亮的部分改成深网点；适合黑裙子这类深灰布料，深色头发会被误伤）" data-t-title="暗部分层（大块实黑里较亮的部分改成深网点；适合黑裙子这类深灰布料，深色头发会被误伤）"><input id="darkSplit" type="checkbox"> <span data-t="暗部分层">暗部分层</span></label>
       <div class="rows" data-group="dark"></div>
     </section>
     <section class="group">
@@ -360,11 +368,11 @@ aside {
     </section>
     <section class="group">
       <h2 class="label" data-t="线稿与实黑">线稿与实黑</h2>
-      <label class="check"><input id="pen" type="checkbox"> <span data-t="叠加细线（嘴、鼻、浅色轮廓）">叠加细线（嘴、鼻、浅色轮廓）</span></label>
+      <label class="check" title="叠加细线（嘴、鼻、浅色轮廓）" data-t-title="叠加细线（嘴、鼻、浅色轮廓）"><input id="pen" type="checkbox"> <span data-t="叠加细线">叠加细线</span></label>
       <div class="rows" data-group="lines"></div>
-      <label class="check"><input id="edgeLines" type="checkbox"> <span data-t="淡边描线（雾中建筑这类只有明暗差的直边）">淡边描线（雾中建筑这类只有明暗差的直边）</span></label>
+      <label class="check" title="淡边描线（雾中建筑这类只有明暗差的直边）" data-t-title="淡边描线（雾中建筑这类只有明暗差的直边）"><input id="edgeLines" type="checkbox"> <span data-t="淡边描线">淡边描线</span></label>
       <div class="rows" data-group="edges"></div>
-      <label class="check"><input id="whiteLines" type="checkbox"> <span data-t="实黑内切出白线（保留深色衣服的褶皱）">实黑内切出白线（保留深色衣服的褶皱）</span></label>
+      <label class="check" title="实黑内切出白线（保留深色衣服的褶皱）" data-t-title="实黑内切出白线（保留深色衣服的褶皱）"><input id="whiteLines" type="checkbox"> <span data-t="实黑内切白线">实黑内切白线</span></label>
     </section>
     <section class="group">
       <h2 class="label" data-t="输出">输出</h2>
@@ -375,7 +383,7 @@ aside {
 
 <footer class="status">
   <span id="hint" class="num">示例图（程序生成）</span>
-  <span class="keys" data-t="滚轮缩放 · 拖动平移 · 双击在适应与 1:1 间切换 · 点选滑块后滚轮微调，双击复位">滚轮缩放 · 拖动平移 · 双击在适应与 1:1 间切换 · 点选滑块后滚轮微调，双击复位</span>
+  <span class="keys" data-t="滚轮缩放 · 拖动平移 · 双击切换适应 / 1:1">滚轮缩放 · 拖动平移 · 双击切换适应 / 1:1</span>
   <span class="links">
     <a href="https://github.com/Jannchie/manga-filter" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 20.5V18c0-1 .25-1.75 1-2.5-3.75-.5-6-2.5-6-5.5 0-1.25.5-2.25 1-2.75L6 3.5l3.5 2c1.5-.25 3.5-.25 5 0l3.5-2 .5 3.75c.5.5 1 1.5 1 2.75 0 3-2.25 5-6 5.5.75.75 1 1.5 1 2.5v2.5m-5-2.25c-3 1-3.25-1.75-5.5-1.75"/></svg>Jannchie/manga-filter</a>
     <a href="https://x.com/jannchie" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2.75H8.5L20 21.25H15.5zM4.5 21.5l6.24-7.9M19.5 2.5l-6.24 7.91"/></svg>@jannchie</a>
@@ -564,7 +572,9 @@ function thresholds(type) {
 // 印刷能印出圆点也是因为分辨率比网点高得多。明暗、分档仍在计算分辨率上做，只有最后一步在出图分辨率上
 const PRINT_PITCH = 10
 const S = 2
-const printScale = (P) => Math.max(1, Math.ceil(PRINT_PITCH / (W / P.lines)))
+// 出图像素上限：线数拉满时按 PRINT_PITCH 放大会到几千万像素，一张要算几十秒，这里宁可让网点小于 10 px
+const MAX_PRINT = 16e6
+const printScale = (P) => Math.max(1, Math.min(Math.ceil(PRINT_PITCH / (W / P.lines)), Math.floor(Math.sqrt(MAX_PRINT / N))))
 // 网格向量在出图像素上取整：间距和角度会被微调一点，换来每个网点的像素形状都一样（否则大小周期性起伏）
 function lattice(P) {
   const R = printScale(P), pitch = (R * W) / P.lines, t = (P.angle * Math.PI) / 180
@@ -681,7 +691,7 @@ function stageEdges(P) {
   return v
 }
 function stageTone(P, inkSt) { // 原版 tone_plan + 渐变：分档、并碎块、渐变网点
-  const kk = cache.ink.k + '|' + key(P, ['wp', 'mid', 'bp', 'minRegion', 'grad', 'light', 'dark', 'darkSplit', 'darkGap', 'darkFloor'])
+  const kk = cache.ink.k + '|' + key(P, ['wp', 'mid', 'bp', 'minRegion', 'grad', 'darkSplit', 'darkGap', 'darkFloor'])
   if (cache.tone?.k === kk) return cache.tone.v
   const { V } = inkSt, bp = Math.min(P.bp, P.wp - 1e-3), mid = Math.min(Math.max(P.mid, bp), P.wp)
   let level = new Uint8Array(N)
@@ -732,8 +742,8 @@ function stageTone(P, inkSt) { // 原版 tone_plan + 渐变：分档、并碎块
       for (let i = 0; i < N; i++) { const l = label[i]; if (l >= 0 && idx[l] >= 0 && rs[i] > thr[idx[l]] && rs[i] > P.darkFloor) { level[i] = 2; lifted[i] = 1 } }
     }
   }
-  const tones = [0, P.light, P.dark, 1], cover = new Float32Array(N)
-  for (let i = 0; i < N; i++) cover[i] = tones[level[i]]
+  // 网点浓度不在这里套（stageCover）：只调浓度时不用重新分档、并碎块
+  let a = null, gc = null
   if (P.grad > 0) {
     // 色块内部明度波动大，说明藏着渐变：那里网点浓度改为跟着明暗走
     const Vs = gauss(V, 3 * k), spread = new Float32Array(N)
@@ -746,17 +756,30 @@ function stageTone(P, inkSt) { // 原版 tone_plan + 渐变：分档、并碎块
     }
     const aRaw = new Float32Array(N)
     for (let i = 0; i < N; i++) aRaw[i] = Math.min(1, Math.max(0, (spread[i] - 0.03) / 0.05)) * P.grad
-    const a = gauss(aRaw, 4 * k), span = Math.max(1e-3, P.wp - bp)
-    for (let i = 0; i < N; i++) cover[i] = cover[i] * (1 - a[i]) + Math.min(1, Math.max(0, (P.wp - Vs[i]) / span)) * a[i]
+    a = gauss(aRaw, 4 * k); gc = new Float32Array(N)
+    const span = Math.max(1e-3, P.wp - bp)
+    for (let i = 0; i < N; i++) gc[i] = Math.min(1, Math.max(0, (P.wp - Vs[i]) / span))
   }
-  // 抬上来的像素直接给深网点：它们落在实黑里，渐变用的明度图在那里无效
-  for (let i = 0; i < N; i++) if (lifted[i]) cover[i] = P.dark
-  const v = { level, cover, lifted }
+  const v = { level, a, gc, lifted }
   cache.tone = { k: kk, v }
   return v
 }
-function stagePrint(P, inkSt, toneSt, pen, edges) {  // 墨层、白线在计算分辨率上定，网点在出图分辨率上印
-  const { cover, level } = toneSt
+function stageCover(P, toneSt) { // 各档套上网点浓度，渐变处按明暗混合
+  const kk = cache.tone.k + '|' + key(P, ['light', 'dark'])
+  if (cache.cover?.k === kk) return cache.cover.v
+  const { level, a, gc, lifted } = toneSt, tones = [0, P.light, P.dark, 1], cover = new Float32Array(N)
+  for (let i = 0; i < N; i++) {
+    const c = tones[level[i]]
+    // 抬上来的像素直接给深网点：它们落在实黑里，渐变用的明度图在那里无效
+    cover[i] = lifted[i] ? P.dark : a ? c * (1 - a[i]) + gc[i] * a[i] : c
+  }
+  cache.cover = { k: kk, v: cover }
+  return cover
+}
+function stageMasks(P, inkSt, toneSt, pen, edges) { // 墨层、白线在计算分辨率上定（只调网点时不用重算）
+  const kk = [cache.ink.k, cache.tone.k, pen ? cache.pen.k : '-', edges ? cache.edges.k : '-', P.whiteLines].join('#')
+  if (cache.masks?.k === kk) return cache.masks.v
+  const { level } = toneSt
   const strokes = Uint8Array.from(inkSt.strokes)
   if (pen) for (let i = 0; i < N; i++) strokes[i] |= pen[i]
   if (edges) for (let i = 0; i < N; i++) strokes[i] |= edges[i]
@@ -770,6 +793,12 @@ function stagePrint(P, inkSt, toneSt, pen, edges) {  // 墨层、白线在计算
     const cutL = erode(keepComponents(strokes, true, (_, w, h) => Math.max(w, h) >= 40 * k), k < 1.6 ? 2 : 3)
     for (let i = 0; i < N; i++) { if (beta[i]) black[i] = 1; if (beta[i] & cutL[i]) white[i] = 1 }
   }
+  const v = { black, white }
+  cache.masks = { k: kk, v }
+  return v
+}
+async function stagePrint(P, masks, cover) {  // 网点在出图分辨率上印
+  const { black, white } = masks
   const { a, b, R } = lattice(P), n2 = a * a + b * b
   const PW = W * R, PH = H * R
   const spotAt = makeSpot(P.screen, PW * S, PH * S, a / n2 / S, b / n2 / S, Math.sqrt(n2) * S), lut = thresholds(P.screen)
@@ -781,7 +810,9 @@ function stagePrint(P, inkSt, toneSt, pen, edges) {  // 墨层、白线在计算
     return top * (1 - ty) + bot * ty
   }
   const page = new Uint8Array(PW * PH), inv = 1 / R
+  let lastYield = performance.now()
   for (let y = 0, o = 0; y < PH; y++) {
+    if (performance.now() - lastYield > 30) { await checkpoint(); lastYield = performance.now() }
     const fy = (y + 0.5) * inv - 0.5
     for (let x = 0; x < PW; x++, o++) {
       const fx = (x + 0.5) * inv - 0.5
@@ -799,10 +830,20 @@ function stagePrint(P, inkSt, toneSt, pen, edges) {  // 墨层、白线在计算
   return { page, R }
 }
 
-let pending = null, busy = false
+let pending = null, busy = false, gen = 0
+// 让出执行权：主线程发来的新参数 / 新图片能插进来；有新的就放弃手上这张（已算完的阶段留在缓存里）
+const ABORT = Symbol('abort'), chan = new MessageChannel()
+let wake = null
+chan.port1.onmessage = () => wake?.()
+let jobGen = 0
+async function checkpoint() {
+  await new Promise((r) => { wake = r; chan.port2.postMessage(0) })
+  if (pending || gen !== jobGen) throw ABORT
+}
 onmessage = (e) => {
   const m = e.data
   if (m.type === 'image') {
+    gen++
     W = m.w; H = m.h; N = W * H; k = W / 1024
     gray = m.gray; Lraw = m.L; Vhk = m.V
     for (const kk of Object.keys(cache)) delete cache[kk]
@@ -811,15 +852,24 @@ onmessage = (e) => {
   pending = m
   if (!busy) run()
 }
-function run() {
+async function run() {
   busy = true
   while (pending) {
     const { P, id } = pending; pending = null
+    jobGen = gen
     const t0 = performance.now()
-    const L = stageLevels(P), inkSt = stageInk(P, L), pen = P.pen ? stagePen(P) : null
-    const edges = P.edgeLines ? stageEdges(P) : null
-    const toneSt = stageTone(P, inkSt), { page, R } = stagePrint(P, inkSt, toneSt, pen, edges)
-    postMessage({ id, page, R, ms: performance.now() - t0, pitch: lattice(P) }, [page.buffer])
+    try {
+      const L = stageLevels(P); await checkpoint()
+      const inkSt = stageInk(P, L); await checkpoint()
+      const pen = P.pen ? stagePen(P) : null; await checkpoint()
+      const edges = P.edgeLines ? stageEdges(P) : null; await checkpoint()
+      const toneSt = stageTone(P, inkSt); await checkpoint()
+      const masks = stageMasks(P, inkSt, toneSt, pen, edges), cover = stageCover(P, toneSt); await checkpoint()
+      const { page, R } = await stagePrint(P, masks, cover)
+      postMessage({ id, page, R, ms: performance.now() - t0, pitch: lattice(P) }, [page.buffer])
+    } catch (err) {
+      if (err !== ABORT) throw err
+    }
   }
   busy = false
 }
@@ -838,8 +888,21 @@ const I18N = {
   '已复制': ['Copied', 'コピーしました', '복사됨'],
   '复制失败': ['Copy failed', 'コピーできませんでした', '복사하지 못했습니다'],
   '恢复基线': ['Reset to baseline', '基準に戻す', '기본값으로'],
+  '预设': ['Presets', 'プリセット', '프리셋'],
+  '标准': ['Standard', '標準', '표준'],
+  '细网点': ['Fine dots', '細かい網点', '촘촘한 망점'],
+  '粗网点': ['Coarse dots', '粗い網点', '굵은 망점'],
+  '高对比': ['High contrast', 'ハイコントラスト', '고대비'],
+  '柔和': ['Soft', 'やわらか', '부드럽게'],
+  '线稿为主': ['Mostly line art', '線画中心', '선화 위주'],
+  '深色衣物': ['Dark clothes', '濃い服', '짙은 옷'],
+  '风景': ['Scenery', '風景', '풍경'],
+  '线网': ['Line screen', '線のトーン', '선 톤'],
+  '暗部分层': ['Dark split', '暗部を分ける', '어두운 부분 나누기'],
+  '叠加细线': ['Fine lines', '細い線', '가는 선'],
+  '淡边描线': ['Faint edges', '淡い輪郭線', '옅은 윤곽선'],
+  '实黑内切白线': ['White lines in blacks', 'ベタに白線', '먹칠 속 흰 선'],
   '漫画网点调参台': ['Manga Tone Bench', '漫画トーン調整台', '만화 톤 조정대'],
-  '无模型': ['No ML model', '機械学習モデルなし', '머신러닝 모델 없음'],
   '处理结果': ['Result', '処理結果', '처리 결과'],
   '缩放': ['Zoom', 'ズーム', '확대·축소'],
   '缩小': ['Zoom out', '縮小', '축소'],
@@ -876,10 +939,7 @@ const I18N = {
   '计算中…': ['Computing…', '計算中…', '계산 중…'],
   '出图': ['Output', '出力', '출력'],
   '这个文件读不出来，换一张 PNG / JPG / WebP 试试': ["Couldn't read this file. Try a PNG, JPG or WebP image.", 'このファイルは読み込めませんでした。PNG・JPG・WebP の画像で試してください。', '이 파일을 읽을 수 없습니다. PNG, JPG, WebP 이미지로 다시 시도해 주세요.'],
-  '滚轮缩放 · 拖动平移 · 双击在适应与 1:1 间切换 · 点选滑块后滚轮微调，双击复位': [
-    'Scroll to zoom · Drag to pan · Double-click to toggle fit and 1:1 · Select a slider and scroll to nudge, double-click to reset',
-    'ホイールで拡大縮小・ドラッグで移動・ダブルクリックで全体表示と 1:1 を切り替え・スライダーを選んでホイールで微調整、ダブルクリックで初期値',
-    '휠로 확대·축소 · 드래그로 이동 · 더블클릭으로 맞춤과 1:1 전환 · 슬라이더를 선택하고 휠로 미세 조정, 더블클릭으로 초기화'],
+  '滚轮缩放 · 拖动平移 · 双击切换适应 / 1:1': ['Scroll to zoom · Drag to pan · Double-click: fit / 1:1', 'ホイールで拡大縮小・ドラッグで移動・ダブルクリックで全体 / 1:1', '휠로 확대·축소 · 드래그로 이동 · 더블클릭: 맞춤 / 1:1'],
   '基于 ashukae/ComfyUI-MangaScreen（MIT）': ['Based on ashukae/ComfyUI-MangaScreen (MIT)', 'ashukae/ComfyUI-MangaScreen（MIT）がベース', 'ashukae/ComfyUI-MangaScreen(MIT) 기반'],
   '点选后可滚轮微调（Shift ×10）· 双击复位': ['Select, then scroll to nudge (Shift ×10) · Double-click to reset', '選択してホイールで微調整（Shift で ×10）・ダブルクリックで初期値', '선택 후 휠로 미세 조정(Shift ×10) · 더블클릭으로 초기화'],
   '间距': ['Pitch', '間隔', '간격'],
@@ -922,7 +982,7 @@ const I18N = {
   '最短线段': ['Shortest segment', '最短の線分', '최소 선분 길이'],
   '按 1024 宽计。只描比它长的直线段。': ['At 1024 px width. Only straight segments longer than this are drawn.', '幅 1024 px 換算。これより長い直線だけを描きます。', '너비 1024 px 기준. 이보다 긴 직선만 그립니다.'],
   '处理尺寸（长边）': ['Working size (long side)', '処理サイズ（長辺）', '처리 크기(긴 변)'],
-  '越大越清晰也越慢；参数按图宽归一，换尺寸效果不变。图太小时会自动放大，保证网点间距至少 5 px。': ['Larger is sharper and slower. Settings are normalized to image width, so the look stays the same at any size. Small images are upscaled so the screen pitch is at least 5 px.', '大きいほど鮮明で遅くなります。設定は画像幅で正規化されるので、サイズを変えても見た目は同じです。小さい画像は網の間隔が 5 px 以上になるよう拡大します。', '클수록 선명하지만 느려집니다. 설정은 이미지 너비로 정규화되어 크기를 바꿔도 모습이 같습니다. 작은 이미지는 망 간격이 5 px 이상이 되도록 키웁니다.'],
+  '越大越清晰也越慢；参数按图宽归一，换尺寸效果不变。': ['Larger is sharper and slower. Settings are normalized to image width, so the look stays the same at any size.', '大きいほど鮮明で遅くなります。設定は画像幅で正規化されるので、サイズを変えても見た目は同じです。', '클수록 선명하지만 느려집니다. 설정은 이미지 너비로 정규화되어 크기를 바꿔도 모습이 같습니다.'],
 }
 const LANG_PATH = /\/(zh|ja|ko)\/?(index\.html)?$/
 const isLang = (v) => LANGS.includes(v)
@@ -993,6 +1053,7 @@ function setLang(v) {
   }
   applyLang()
   rebuildRows()
+  buildPresets()
   if (W) hint.textContent = srcName
 }
 document.getElementById('lang').addEventListener('change', (e) => setLang(e.target.value))
@@ -1036,7 +1097,7 @@ const SPEC = [
   { k: 'darkFloor', g: 'dark', label: '分层下限', min: 0.05, max: 0.4, step: 0.005, note: '原图灰度高于它才抬成网点。深灰布料和黑色书包往往只差一点，按图调。' },
   { k: 'edgeLow', g: 'edges', label: '淡边灵敏度', unit: 'L*/px', min: 0.4, max: 5, step: 0.1, note: '越小越能抓到雾里的淡边，也越容易描到不想要的边。' },
   { k: 'edgeLen', g: 'edges', label: '最短线段', unit: 'px', min: 8, max: 120, step: 2, note: '按 1024 宽计。只描比它长的直线段。' },
-  { k: 'size', g: 'output', label: '处理尺寸（长边）', unit: 'px', min: 600, max: 2400, step: 100, note: '越大越清晰也越慢；参数按图宽归一，换尺寸效果不变。图太小时会自动放大，保证网点间距至少 5 px。' },
+  { k: 'size', g: 'output', label: '处理尺寸（长边）', unit: 'px', min: 600, max: 2400, step: 100, note: '越大越清晰也越慢；参数按图宽归一，换尺寸效果不变。' },
 ]
 
 // ---------- 状态 ----------
@@ -1055,11 +1116,8 @@ const toLin = new Float32Array(256)
 for (let i = 0; i < 256; i++) { const c = i / 255; toLin[i] = c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4 }
 const fLab = (t) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116)
 
-// 线数按图宽算：图太小时网点只剩两三个像素，画不圆、缩小看还会起干涉圆圈。
-// 所以必要时放大处理，保证网点间距至少 MIN_PITCH 像素（原版 README 也建议每个点约 5 px）
-const MIN_PITCH = 5
-const scaleFor = () => Math.max(Math.min(1, P.size / Math.max(src.width, src.height)), (MIN_PITCH * P.lines) / src.width)
-const needWidth = () => Math.max(1, Math.round(src.width * scaleFor()))
+// 处理分辨率只看「处理尺寸」：网点圆不圆由 worker 里单独的出图分辨率负责，线数变了不用重新取样
+const scaleFor = () => Math.min(1, P.size / Math.max(src.width, src.height))
 function prepare() {
   const s = scaleFor()
   W = Math.max(1, Math.round(src.width * s)); H = Math.max(1, Math.round(src.height * s))
@@ -1115,6 +1173,7 @@ function draw() {
   present()
 }
 let queued = false
+let prepTimer = 0
 function schedule() { if (queued) return; queued = true; requestAnimationFrame(() => { queued = false; compute() }) }
 
 // ---------- 预览视口：缩放与平移 ----------
@@ -1191,18 +1250,22 @@ stage.addEventListener('wheel', (e) => {
 {
   const pts = new Map()
   let last = null
+  // 拖过就不弹右键菜单；没拖的右键点按保留浏览器菜单（能另存图片）
+  let downAt = null, dragged = false
   const mid = () => { const a = [...pts.values()]; return a.length > 1 ? { x: (a[0].x + a[1].x) / 2, y: (a[0].y + a[1].y) / 2, d: Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) } : { x: a[0].x, y: a[0].y, d: 0 } }
   stage.addEventListener('pointerdown', (e) => {
     if (e.target.closest('.zoom')) return
     stage.setPointerCapture(e.pointerId)
     const r = stage.getBoundingClientRect()
     pts.set(e.pointerId, { x: e.clientX - r.left, y: e.clientY - r.top })
+    if (pts.size === 1) (downAt = { x: e.clientX, y: e.clientY }), (dragged = false)
     last = mid(); stage.classList.add('panning')
   })
   stage.addEventListener('pointermove', (e) => {
     if (!pts.has(e.pointerId)) return
     const r = stage.getBoundingClientRect()
     pts.set(e.pointerId, { x: e.clientX - r.left, y: e.clientY - r.top })
+    if (downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 4) dragged = true
     const m = mid()
     vx += m.x - last.x; vy += m.y - last.y; autoFit = false
     if (pts.size > 1 && last.d > 0 && m.d > 0) return (zoomAt(vs * (m.d / last.d), m.x, m.y), (last = m))
@@ -1212,6 +1275,7 @@ stage.addEventListener('wheel', (e) => {
   const up = (e) => { pts.delete(e.pointerId); last = pts.size ? mid() : null; if (!pts.size) stage.classList.remove('panning') }
   stage.addEventListener('pointerup', up)
   stage.addEventListener('pointercancel', up)
+  stage.addEventListener('contextmenu', (e) => { if (dragged) e.preventDefault() })
 }
 const oneToOne = (cx = stage.clientWidth / 2, cy = stage.clientHeight / 2) => zoomAt(1 / (window.devicePixelRatio || 1), cx, cy)
 stage.addEventListener('dblclick', (e) => {
@@ -1234,7 +1298,7 @@ window.addEventListener('keydown', (e) => {
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
 const decimals = (x) => (String(x).split('.')[1] || '').length
 const rows = new Map()
-function save() { try { localStorage.setItem(KEY, JSON.stringify(P)) } catch {} }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(P)) } catch {} paintPresets() }
 
 function buildRow(sp) {
   const scale = sp.scale ?? 1
@@ -1242,7 +1306,7 @@ function buildRow(sp) {
   row.className = 'slider'
   row.innerHTML = `
     <div class="slider-head">
-      <label for="${sp.k}">${t(sp.label)}${sp.unit ? ` <span class="slider-extra">${sp.unit}</span>` : ''}</label>
+      <label for="${sp.k}"${sp.note ? ` title="${t(sp.note)}"` : ''}>${t(sp.label)}${sp.unit ? ` <span class="slider-extra">${sp.unit}</span>` : ''}</label>
       <span class="slider-extra" data-extra></span>
       <input class="slider-number" type="number" aria-label="${t(sp.label)}" min="${sp.min * scale}" max="${sp.max * scale}" step="${+(sp.step * scale).toFixed(6)}">
     </div>
@@ -1250,7 +1314,7 @@ function buildRow(sp) {
       <span class="range-rail"></span><span class="range-fill"></span><span class="range-mark"></span><span class="range-thumb"></span>
       <input id="${sp.k}" class="range-input" type="range" min="${sp.min}" max="${sp.max}" step="${sp.step}" title="${t('点选后可滚轮微调（Shift ×10）· 双击复位')}">
     </span>
-    ${sp.note ? `<div class="note">${t(sp.note)}</div>` : ''}`
+`
   const wrap = row.querySelector('.range-wrap')
   const range = row.querySelector('.range-input')
   const num = row.querySelector('.slider-number')
@@ -1275,7 +1339,8 @@ function buildRow(sp) {
     if (v === P[sp.k]) return paint()
     P[sp.k] = v
     paint(); save()
-    if (src && (sp.k === 'size' || (sp.k === 'lines' && needWidth() !== W))) prepare()
+    // 改尺寸要在主线程重新取样（大图要几百毫秒）：拖动中不做，停下 150 ms 后再做
+    if (src && sp.k === 'size') return (clearTimeout(prepTimer), (prepTimer = setTimeout(() => (prepare(), compute()), 150)))
     schedule()
   }
   range.addEventListener('input', () => set(range.valueAsNumber))
@@ -1333,6 +1398,39 @@ for (const id of ['pen', 'whiteLines', 'darkSplit', 'edgeLines']) {
 for (const b of document.querySelectorAll('[data-screen]')) {
   b.addEventListener('click', () => { P.screen = b.dataset.screen; syncUI(); save(); schedule() })
 }
+// 预设：在基线上改几个参数（不动处理尺寸）。当前参数正好等于某个预设时高亮它
+const PRESETS = [
+  ['标准', {}],
+  ['细网点', { lines: 320, light: 0.14, dark: 0.36 }],
+  ['粗网点', { lines: 110, light: 0.2, dark: 0.46 }],
+  ['高对比', { white: 0.62, bp: 0.38, solid: 0.28, light: 0.22, dark: 0.52, grad: 0.5 }],
+  ['柔和', { black: 0.12, white: 0.78, bp: 0.2, solid: 0.16, light: 0.12, dark: 0.32, minRegion: 300 }],
+  ['线稿为主', { wp: 0.6, mid: 0.4, light: 0.1, dark: 0.3, grad: 0, fine: 4 }],
+  ['线网', { screen: 'line', lines: 150, light: 0.2, dark: 0.45 }],
+  ['深色衣物', { darkSplit: true, hk: 0.6 }],
+  ['风景', { edgeLines: true, darkSplit: true, minRegion: 1200, hk: 0.5 }],
+]
+const presetBox = document.getElementById('presets')
+const presetOf = (o) => ({ ...DEFAULTS, ...o, size: P.size })
+var presetsReady = false // save() 在预设建好之前也可能被调用（var 提升，不会撞上 const 的暂时性死区）
+function paintPresets() {
+  if (!presetsReady) return
+  for (const [i, b] of [...presetBox.children].entries()) {
+    const want = presetOf(PRESETS[i][1])
+    b.setAttribute('aria-pressed', String(Object.keys(want).every((key) => P[key] === want[key])))
+  }
+}
+function buildPresets() {
+  presetBox.replaceChildren(...PRESETS.map(([name, o]) => {
+    const b = document.createElement('button')
+    b.type = 'button'; b.textContent = t(name)
+    b.addEventListener('click', () => { P = presetOf(o); syncUI(); save(); schedule() })
+    return b
+  }))
+  presetsReady = true
+  paintPresets()
+}
+buildPresets()
 document.getElementById('reset').addEventListener('click', () => {
   const size = P.size
   P = { ...DEFAULTS }
