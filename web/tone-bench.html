@@ -1,0 +1,1210 @@
+<title>漫画网点调参台</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+<style>
+/*
+ * 版面：顶栏两格（名字 | 操作）+ 左画布右侧栏，格子之间用细线分隔（同 icons 的线框）；
+ * 配色同 icons：不用彩色强调，强调色就是正文色，选中态用一层很淡的正文色；控件尺度沿用 my-home。
+ */
+:root {
+  --bg: #fbfbfc;
+  --surface: #ffffff;
+  --surface-2: #fafafb;
+  --hover: #f1f1f3;
+  --canvas: #f6f6f7;
+  --grid: #e9e9ec;
+  --border: #e6e6ea;
+  --border-strong: #d4d4da;
+  --text: #0e0e11;
+  --text-muted: #6e6f78;
+  --text-faint: #a2a3ab;
+  --text-inverse: #ffffff;
+  --accent: var(--text);
+  --accent-hover: #2a2a30;
+  --accent-weak: color-mix(in srgb, var(--text) 9%, transparent);
+  --accent-ring: color-mix(in srgb, var(--text) 18%, transparent);
+  --radius-sm: 6px;
+  --radius: 8px;
+  --shadow-sm: 0 1px 2px rgba(32, 38, 34, 0.05);
+  --shadow: 0 4px 14px rgba(32, 38, 34, 0.07);
+  --font-sans: 'Nunito', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei UI', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, sans-serif;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-base: 14px;
+  --fs-md: 15px;
+  --control-h: 32px;
+  --side: 320px;
+  --top-h: 57px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #09090b; --surface: #0e0e11; --surface-2: #0c0c0e; --hover: #18181c; --canvas: #121215; --grid: #1b1b20;
+    --border: #1d1d22; --border-strong: #2a2a31; --text: #f2f2f4; --text-muted: #9a9ba4; --text-faint: #5e5f68;
+    --text-inverse: #0e0e11; --accent: var(--text); --accent-hover: #d6d6da;
+    --accent-weak: color-mix(in srgb, var(--text) 10%, transparent); --accent-ring: color-mix(in srgb, var(--text) 22%, transparent);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4); --shadow: 0 4px 14px rgba(0, 0, 0, 0.5); color-scheme: dark;
+  }
+}
+:root[data-theme='dark'] {
+  --bg: #09090b; --surface: #0e0e11; --surface-2: #0c0c0e; --hover: #18181c; --canvas: #121215; --grid: #1b1b20;
+    --border: #1d1d22; --border-strong: #2a2a31; --text: #f2f2f4; --text-muted: #9a9ba4; --text-faint: #5e5f68;
+    --text-inverse: #0e0e11; --accent: var(--text); --accent-hover: #d6d6da;
+    --accent-weak: color-mix(in srgb, var(--text) 10%, transparent); --accent-ring: color-mix(in srgb, var(--text) 22%, transparent);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4); --shadow: 0 4px 14px rgba(0, 0, 0, 0.5); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+/* 一屏的应用：整页不滚，侧栏（窄屏时是内容区）自己滚 */
+html, body { height: 100%; overflow: hidden; }
+body {
+  margin: 0;
+  background: var(--bg); color: var(--text); font: var(--fs-base)/1.5 var(--font-sans);
+  -webkit-font-smoothing: antialiased; display: flex; flex-direction: column;
+}
+.num { font-variant-numeric: tabular-nums; }
+svg { flex: none; display: block; }
+
+/* ---------- 按钮（同 my-home） ---------- */
+button, .btn {
+  font: inherit; font-size: var(--fs-sm); color: var(--text); background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius-sm); height: var(--control-h); padding: 0 12px;
+  cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 6px; line-height: 1;
+  user-select: none; transition: background-color .12s ease, border-color .12s ease, color .12s ease;
+}
+button:hover, .btn:hover { background: var(--hover); border-color: var(--border-strong); }
+button:active, .btn:active { transform: translateY(0.5px); filter: brightness(0.97); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--text-inverse); font-weight: 600; }
+.btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn input { display: none; }
+button svg, .btn svg { color: var(--text-muted); }
+.btn.primary svg { color: inherit; }
+:focus-visible { outline: 2px solid var(--accent-ring); outline-offset: 1px; }
+.btn:focus-within { outline: 2px solid var(--accent-ring); outline-offset: 1px; }
+input[type='checkbox'], input[type='range'] { accent-color: var(--accent); }
+::selection { background: var(--accent-weak); }
+
+/* 分段控件（同 icons 的视图切换：选中是一层下沉底 + 内描边） */
+.seg { display: inline-flex; align-items: center; gap: 2px; padding: 2px; border-radius: var(--radius); background: var(--hover); }
+.seg button { height: 28px; border: 0; background: none; color: var(--text-muted); padding: 0 10px; }
+.seg button:hover { background: none; color: var(--text); }
+.seg button[aria-pressed='true'] { color: var(--text); background: var(--surface); box-shadow: inset 0 0 0 1px var(--border-strong), var(--shadow-sm); }
+.seg button[aria-pressed='true'] svg { color: var(--text); }
+
+/* ---------- 顶栏 ---------- */
+.top {
+  display: grid; grid-template-columns: minmax(0, 1fr) var(--side); align-items: stretch;
+  border-bottom: 1px solid var(--border); background: var(--surface);
+}
+.actions {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-height: var(--top-h);
+  padding-block: 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: 16px;
+}
+.actions .sep { width: 1px; height: 20px; background: var(--border); }
+.brand {
+  display: flex; align-items: center; gap: 10px; border-left: 1px solid var(--border);
+  padding-block: 12px; padding-left: 20px; padding-right: max(20px, env(safe-area-inset-right, 0px));
+  font-weight: 700; font-size: var(--fs-md); letter-spacing: -.01em; white-space: nowrap;
+}
+.brand svg { color: var(--accent); }
+.brand .ver { color: var(--text-muted); font-size: var(--fs-xs); font-weight: 400; }
+
+/* ---------- 主体 ---------- */
+main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) var(--side); }
+.stage {
+  position: relative; min-width: 0; min-height: 0; overflow: hidden; touch-action: none; cursor: grab;
+  /* 底纹沿用 my-home 平面图画布：浅色细网格 */
+  background-color: var(--canvas);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.stage.panning { cursor: grabbing; }
+.stage.drag::after {
+  content: '松开即可载入'; position: absolute; inset: 12px; display: grid; place-items: center;
+  border: 2px dashed var(--accent); border-radius: var(--radius); background: color-mix(in srgb, var(--accent-weak) 70%, transparent);
+  color: var(--accent); font-weight: 600; pointer-events: none;
+}
+.stage canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+/* 缩放比例浮标（同 my-home 画布右下角的缩放条） */
+.zoom {
+  position: absolute; right: 12px; bottom: 12px; z-index: 1; display: flex; align-items: center; gap: 2px; padding: 2px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm);
+}
+.zoom button { height: 26px; min-width: 26px; padding: 0 8px; border: 0; background: none; font-variant-numeric: tabular-nums; }
+.zoom button:hover { background: var(--hover); }
+.zoom output { min-width: 48px; text-align: center; font-size: var(--fs-xs); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.status a { color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+.status a:hover { color: var(--text); text-decoration: underline; text-underline-offset: 2px; }
+.status .links { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+
+aside {
+  min-width: 0; overflow-y: auto; background: var(--surface-2); border-left: 1px solid var(--border);
+  scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent;
+}
+.group { display: grid; gap: 14px; padding-block: 16px; padding-left: 20px; padding-right: max(20px, env(safe-area-inset-right, 0px)); border-bottom: 1px solid var(--border); }
+.label { margin: 0; font-size: var(--fs-xs); font-weight: 600; letter-spacing: .06em; color: var(--text-muted); }
+/*
+ * 滑块（照 llr 的 SliderRow）：透明的原生 range 负责键盘、焦点与无障碍，上面手绘一条发丝轨道、
+ * 从原点到当前值的填充、默认值处的小刻度和一个圆盘滑块。hover 时轨道变粗、圆盘放大；按住时描边换主色、
+ * 外加一圈柔光。--range-p 是注册属性：双击复位、滚轮、输入数字这类跳变会滑过去，拖动时关掉过渡贴着指针。
+ */
+@property --range-p { syntax: '<number>'; inherits: true; initial-value: 0; }
+.slider { display: grid; gap: 4px; }
+.slider-head { display: flex; align-items: center; gap: 8px; min-height: 20px; }
+.slider-head label { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: var(--fs-sm); color: var(--text-muted); transition: color .12s; }
+.slider.is-modified .slider-head label { color: var(--text); font-weight: 600; }
+.slider-extra { font-size: var(--fs-xs); color: var(--text-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.slider-number {
+  flex: none; width: 58px; height: 22px; padding: 0 5px; text-align: right;
+  font: inherit; font-size: var(--fs-xs); font-variant-numeric: tabular-nums; color: var(--text-muted);
+  background: transparent; border: 1px solid transparent; border-radius: var(--radius-sm);
+  appearance: textfield; -moz-appearance: textfield; transition: color .12s, border-color .12s, background-color .12s;
+}
+.slider-number::-webkit-outer-spin-button, .slider-number::-webkit-inner-spin-button { appearance: none; margin: 0; }
+.slider.is-modified .slider-number { color: var(--text); }
+.slider-number:hover { border-color: var(--border); background: var(--surface); color: var(--text); }
+.slider-number:focus { outline: none; border-color: var(--accent); background: var(--surface); color: var(--text); }
+.range-wrap {
+  --knob: 14px; --rail-h: 2px;
+  position: relative; display: block; height: 18px;
+  transition: --range-p 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.range-wrap.is-dragging { transition: none; }
+.range-wrap:hover, .range-wrap.is-dragging { --rail-h: 4px; }
+.range-rail, .range-fill {
+  position: absolute; top: 50%; height: var(--rail-h); border-radius: 999px; transform: translateY(-50%);
+  pointer-events: none; transition: height 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.range-rail { left: calc(var(--knob) / 2); right: calc(var(--knob) / 2); background: var(--border-strong); }
+.range-fill {
+  --range-a: min(var(--range-p), var(--range-o));
+  --range-b: max(var(--range-p), var(--range-o));
+  left: calc(var(--knob) / 2 + var(--range-a) * (100% - var(--knob)));
+  width: calc((var(--range-b) - var(--range-a)) * (100% - var(--knob)));
+  background: var(--accent);
+}
+.range-mark {
+  position: absolute; top: 50%; left: calc(var(--knob) / 2 + var(--range-r) * (100% - var(--knob)));
+  width: 1px; height: 9px; transform: translate(-50%, -50%); background: var(--text-faint); pointer-events: none;
+}
+.range-thumb {
+  position: absolute; top: 50%; left: calc(var(--knob) / 2 + var(--range-p) * (100% - var(--knob)));
+  width: var(--knob); height: var(--knob); border-radius: 50%;
+  background: var(--surface); border: 1.5px solid var(--border-strong); box-shadow: var(--shadow-sm), 0 1px 3px rgba(32, 38, 34, 0.12);
+  transform: translate(-50%, -50%); pointer-events: none;
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), border-color 160ms ease, box-shadow 200ms ease;
+}
+.range-wrap:hover .range-thumb { transform: translate(-50%, -50%) scale(1.15); border-color: var(--text-faint); }
+.range-wrap:focus-within .range-thumb { border-color: var(--accent); border-width: 2px; }
+.range-wrap.is-dragging .range-thumb {
+  border-color: var(--accent); border-width: 2px; transform: translate(-50%, -50%) scale(1.22);
+  box-shadow: var(--shadow-sm), 0 0 0 5px var(--accent-ring);
+}
+.range-input { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; appearance: none; }
+.range-input::-webkit-slider-thumb { appearance: none; width: var(--knob); height: var(--knob); }
+.range-input::-moz-range-thumb { width: var(--knob); height: var(--knob); border: 0; }
+.range-input:focus { outline: none; }
+.slider .note { font-size: var(--fs-xs); color: var(--text-faint); line-height: 1.5; }
+.rows { display: grid; gap: 14px; }
+/* 网点类型：带预览的卡片，选中态同分段控件（一层底 + 内描边） */
+.screens { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.screens button {
+  height: auto; flex-direction: column; align-items: stretch; gap: 4px; padding: 4px 3px 5px; min-width: 0;
+  background: transparent; border-color: transparent; color: var(--text-muted); font-size: var(--fs-xs);
+}
+.screens button:hover { background: var(--hover); border-color: transparent; color: var(--text); }
+.screens button[aria-pressed='true'] { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: inset 0 0 0 1px var(--border-strong), var(--shadow-sm); }
+.screens canvas { display: block; width: 100%; height: 34px; border-radius: 4px; box-shadow: 0 0 0 1px var(--border); }
+.check { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sm); cursor: pointer; }
+
+/* 底部状态栏（同 my-home 画布底部的操作提示） */
+.status {
+  display: flex; flex-wrap: wrap; gap: 4px 16px; justify-content: space-between; align-items: center;
+  border-top: 1px solid var(--border); background: var(--surface); font-size: var(--fs-xs); color: var(--text-muted);
+  padding-block: 6px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.status .keys { color: var(--text-faint); }
+
+@media (max-width: 860px) {
+  .top { grid-template-columns: minmax(0, 1fr); }
+  .brand { order: -1; border-left: 0; border-bottom: 1px solid var(--border); padding-left: max(16px, env(safe-area-inset-left, 0px)); }
+  main { grid-template-columns: minmax(0, 1fr); grid-template-rows: 58vh auto; overflow-y: auto; }
+  aside { overflow-y: visible; border-left: 0; border-top: 1px solid var(--border); }
+  .group { padding-left: max(16px, env(safe-area-inset-left, 0px)); }
+  .actions .sep { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition-duration: 0.01ms !important; } }
+</style>
+
+<header class="top">
+  <div class="actions">
+    <label class="btn primary" for="file"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.05 18H5A2 2 0 013 16V5A2 2 0 015 3H16a2 2 0 012 2v8.05M3 14.79l3.93-3.94a.5.5 0 01.71 0l5.99 5.99M18.5 15.5v6m-3-3h6"/><path d="M14.25 6.75h0" stroke-width="2"/></svg>打开图片<input id="file" type="file" accept="image/*"></label>
+    <span class="sep" aria-hidden="true"></span>
+    <button id="hold" type="button" title="按住显示原图"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12C5 7.25 8.25 5 12 5c3.75 0 7 2.25 9.5 7-2.5 4.75-5.75 7-9.5 7-3.75 0-7-2.25-9.5-7zM9 12a3 3 0 106 0A3 3 0 109 12"/></svg>按住看原图</button>
+    
+    <span class="sep" aria-hidden="true"></span>
+    <button id="copy" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 8.5h8a2 2 0 012 2v8a2 2 0 01-2 2h-8a2 2 0 01-2-2v-8a2 2 0 012-2zM6 15.5H4.75A1.25 1.25 0 013.5 14.25V5.5a2 2 0 012-2h8.75A1.25 1.25 0 0115.5 4.75V6"/></svg><span>复制参数</span></button>
+    <button id="reset" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.22 12A7.78 7.78 0 106.5 6.5L5.25 7.75M4.5 4V8a.5.5 0 00.5.5H9"/></svg>恢复基线</button>
+  </div>
+  <div class="brand"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1017 0 8.5 8.5 0 10-17 0"/><path d="M12 3.5a8.5 8.5 0 010 17z" fill="currentColor"/></svg>漫画网点调参台<span class="ver">机械管线 · 无模型</span></div>
+</header>
+
+<main>
+  <div class="stage" id="stage">
+    <canvas id="out" aria-label="处理结果"></canvas>
+    <div class="zoom" role="group" aria-label="缩放">
+      <button type="button" id="zoomOut" title="缩小" aria-label="缩小">−</button>
+      <output id="zoomLabel" class="num">100%</output>
+      <button type="button" id="zoomIn" title="放大" aria-label="放大">+</button>
+      <button type="button" id="zoomFit" title="适应窗口（0）">适应</button>
+      <button type="button" id="zoom1" title="1 个图像像素 = 1 个屏幕像素（1）">1:1</button>
+    </div>
+  </div>
+  <aside id="panel">
+    <section class="group">
+      <h2 class="label">明暗</h2>
+      <div class="rows" data-group="light"></div>
+    </section>
+    <section class="group">
+      <h2 class="label">分档</h2>
+      <div class="rows" data-group="levels"></div>
+      <label class="check"><input id="darkSplit" type="checkbox"> 暗部分层（大块实黑里较亮的部分改成深网点；适合黑裙子这类深灰布料，深色头发会被误伤）</label>
+      <div class="rows" data-group="dark"></div>
+    </section>
+    <section class="group">
+      <h2 class="label">网点</h2>
+      <div class="screens" role="group" aria-label="网点类型">
+        <button type="button" data-screen="dot" aria-pressed="true"><canvas></canvas><span>圆点</span></button>
+        <button type="button" data-screen="square" aria-pressed="false"><canvas></canvas><span>方点</span></button>
+        <button type="button" data-screen="diamond" aria-pressed="false"><canvas></canvas><span>菱形点</span></button>
+        <button type="button" data-screen="chain" aria-pressed="false"><canvas></canvas><span>链点</span></button>
+        <button type="button" data-screen="line" aria-pressed="false"><canvas></canvas><span>平行线</span></button>
+        <button type="button" data-screen="cross" aria-pressed="false"><canvas></canvas><span>交叉线</span></button>
+        <button type="button" data-screen="wave" aria-pressed="false"><canvas></canvas><span>波纹线</span></button>
+        <button type="button" data-screen="sand" aria-pressed="false"><canvas></canvas><span>砂目</span></button>
+        <button type="button" data-screen="ring" aria-pressed="false"><canvas></canvas><span>同心圆</span></button>
+        <button type="button" data-screen="burst" aria-pressed="false"><canvas></canvas><span>集中线</span></button>
+      </div>
+      <div class="rows" data-group="screen"></div>
+    </section>
+    <section class="group">
+      <h2 class="label">线稿与实黑</h2>
+      <label class="check"><input id="pen" type="checkbox"> 叠加细线（嘴、鼻、浅色轮廓）</label>
+      <div class="rows" data-group="lines"></div>
+      <label class="check"><input id="edgeLines" type="checkbox"> 淡边描线（雾中建筑这类只有明暗差的直边）</label>
+      <div class="rows" data-group="edges"></div>
+      <label class="check"><input id="whiteLines" type="checkbox"> 实黑内切出白线（保留深色衣服的褶皱）</label>
+    </section>
+    <section class="group">
+      <h2 class="label">输出</h2>
+      <div class="rows" data-group="output"></div>
+    </section>
+  </aside>
+</main>
+
+<footer class="status">
+  <span id="hint" class="num">示例图（程序生成）</span>
+  <span class="keys">滚轮缩放 · 拖动平移 · 双击在适应与 1:1 间切换 · 点选滑块后滚轮微调，双击复位</span>
+  <span class="links">
+    <a href="https://github.com/Jannchie/manga-filter" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 20.5V18c0-1 .25-1.75 1-2.5-3.75-.5-6-2.5-6-5.5 0-1.25.5-2.25 1-2.75L6 3.5l3.5 2c1.5-.25 3.5-.25 5 0l3.5-2 .5 3.75c.5.5 1 1.5 1 2.75 0 3-2.25 5-6 5.5.75.75 1 1.5 1 2.5v2.5m-5-2.25c-3 1-3.25-1.75-5.5-1.75"/></svg>Jannchie/manga-filter</a>
+    <a href="https://x.com/jannchie" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2.75H8.5L20 21.25H15.5zM4.5 21.5l6.24-7.9M19.5 2.5l-6.24 7.91"/></svg>@jannchie</a>
+    <a href="https://github.com/ashukae/ComfyUI-MangaScreen" target="_blank" rel="noopener">基于 ashukae/ComfyUI-MangaScreen（MIT）</a>
+  </span>
+</footer>
+
+<!--
+  计算管线（Web Worker）。原版 ComfyUI-MangaScreen 的 Manga Levels + Manga Finish（MIT，© ashukae）移植成 JS，
+  加上本页的改动：饱和色提亮、细尺度 DoG 线稿（原版需外接神经网络线稿才有）、10 种网点、网格对齐。
+  所有尺寸按图宽 1024 归一（k = 宽 / 1024），同一组参数在任何分辨率下效果相同。
+-->
+<script type="text/js-worker" id="worker-src">
+'use strict'
+let W = 0, H = 0, N = 0, k = 1
+let gray, Lraw, Vhk            // 输入：Rec.601 灰度、CIELAB L*、HK 校正明度
+const cache = {}
+
+// ---------- 基础算子 ----------
+function boxesForGauss(sigma) {
+  const wIdeal = Math.sqrt((12 * sigma * sigma) / 3 + 1)
+  let wl = Math.floor(wIdeal); if (wl % 2 === 0) wl--
+  const wu = wl + 2
+  const m = Math.round((12 * sigma * sigma - 3 * wl * wl - 12 * wl - 9) / (-4 * wl - 4))
+  return [0, 1, 2].map((i) => Math.max(0, ((i < m ? wl : wu) - 1) / 2))
+}
+function boxH(s, d, r) {
+  const inv = 1 / (2 * r + 1)
+  for (let y = 0; y < H; y++) {
+    const o = y * W
+    let acc = 0
+    for (let x = -r - 1; x < r; x++) acc += s[o + Math.min(W - 1, Math.max(0, x))]
+    for (let x = 0; x < W; x++) {
+      acc += s[o + Math.min(W - 1, x + r)] - s[o + Math.max(0, x - r - 1)]
+      d[o + x] = acc * inv
+    }
+  }
+}
+function boxV(s, d, r) {
+  const inv = 1 / (2 * r + 1)
+  for (let x = 0; x < W; x++) {
+    let acc = 0
+    for (let y = -r - 1; y < r; y++) acc += s[Math.min(H - 1, Math.max(0, y)) * W + x]
+    for (let y = 0; y < H; y++) {
+      acc += s[Math.min(H - 1, y + r) * W + x] - s[Math.max(0, y - r - 1) * W + x]
+      d[y * W + x] = acc * inv
+    }
+  }
+}
+function box(src, r) { const a = new Float32Array(N), b = new Float32Array(N); boxH(src, b, r); boxV(b, a, r); return a }
+function gauss(src, sigma) {
+  let a = Float32Array.from(src); const b = new Float32Array(N)
+  if (sigma < 0.3) return a
+  for (const r of boxesForGauss(sigma)) { const ri = Math.round(r); if (ri > 0) { boxH(a, b, ri); boxV(b, a, ri) } }
+  return a
+}
+// 可分离近似的双边滤波（先横后竖）：保边压平
+function bilateral(src, d, sc, ss) {
+  const r = d >> 1, ws = new Float32Array(2 * r + 1), ic = -1 / (2 * sc * sc)
+  for (let i = -r; i <= r; i++) ws[i + r] = Math.exp(-(i * i) / (2 * ss * ss))
+  const tmp = new Float32Array(N), out = new Float32Array(N)
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = y * W + x, c = src[i]; let sw = 0, sv = 0
+    for (let t = -r; t <= r; t++) {
+      const xx = Math.min(W - 1, Math.max(0, x + t)), v = src[y * W + xx], dv = v - c
+      const w = ws[t + r] * Math.exp(dv * dv * ic); sw += w; sv += w * v
+    }
+    tmp[i] = sv / sw
+  }
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = y * W + x, c = tmp[i]; let sw = 0, sv = 0
+    for (let t = -r; t <= r; t++) {
+      const yy = Math.min(H - 1, Math.max(0, y + t)), v = tmp[yy * W + x], dv = v - c
+      const w = ws[t + r] * Math.exp(dv * dv * ic); sw += w; sv += w * v
+    }
+    out[i] = sv / sw
+  }
+  return out
+}
+// 连通块：标签 + 每块面积与外接框
+function components(mask, conn8) {
+  const parent = new Int32Array(N).fill(-1)
+  const find = (i) => { while (parent[i] !== i) { parent[i] = parent[parent[i]]; i = parent[i] } return i }
+  const unite = (a, b) => { a = find(a); b = find(b); if (a !== b) parent[b] = a }
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = y * W + x
+    if (!mask[i]) continue
+    parent[i] = i
+    if (x > 0 && mask[i - 1]) unite(i - 1, i)
+    if (y > 0) {
+      const u = i - W
+      if (mask[u]) unite(u, i)
+      if (conn8) {
+        if (x > 0 && mask[u - 1]) unite(u - 1, i)
+        if (x < W - 1 && mask[u + 1]) unite(u + 1, i)
+      }
+    }
+  }
+  const label = new Int32Array(N).fill(-1), ids = new Int32Array(N).fill(-1)
+  const area = [], x0 = [], x1 = [], y0 = [], y1 = []
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = y * W + x
+    if (!mask[i]) continue
+    const root = find(i)
+    let id = ids[root]
+    if (id < 0) { id = ids[root] = area.length; area.push(0); x0.push(x); x1.push(x); y0.push(y); y1.push(y) }
+    label[i] = id; area[id]++
+    if (x < x0[id]) x0[id] = x; if (x > x1[id]) x1[id] = x
+    if (y < y0[id]) y0[id] = y; if (y > y1[id]) y1[id] = y
+  }
+  return { label, area, w: area.map((_, j) => x1[j] - x0[j] + 1), h: area.map((_, j) => y1[j] - y0[j] + 1) }
+}
+function keepComponents(mask, conn8, pred) {
+  const { label, area, w, h } = components(mask, conn8)
+  const keep = area.map((a, j) => pred(a, w[j], h[j]))
+  const out = new Uint8Array(N)
+  for (let i = 0; i < N; i++) if (label[i] >= 0 && keep[label[i]]) out[i] = 1
+  return out
+}
+// 窗口内的类别中位数：每个类别做一次盒式计数（与窗口大小无关）
+function medianCat(cat, cats, n) {
+  const r = n >> 1, counts = cats.map((c) => { const m = new Float32Array(N); for (let i = 0; i < N; i++) m[i] = cat[i] === c ? 1 : 0; return box(m, r) })
+  const out = new Uint8Array(N)
+  for (let i = 0; i < N; i++) {
+    let acc = 0
+    for (let j = 0; j < cats.length; j++) { acc += counts[j][i]; if (acc >= 0.5) { out[i] = cats[j]; break } }
+  }
+  return out
+}
+function erode(mask, n) {
+  const m = new Float32Array(N); for (let i = 0; i < N; i++) m[i] = mask[i]
+  const b = box(m, n >> 1), out = new Uint8Array(N)
+  for (let i = 0; i < N; i++) out[i] = b[i] > 0.999 ? 1 : 0
+  return out
+}
+const odd = (v) => Math.max(1, Math.round(v) | 1)
+
+// ---------- 网屏 ----------
+const TAU = 2 * Math.PI
+const CELL = {
+  dot: (u, v) => (Math.cos(TAU * u) + Math.cos(TAU * v)) / 2,
+  square: (u, v) => 1 - 2 * Math.max(Math.abs(u - Math.floor(u) - 0.5), Math.abs(v - Math.floor(v) - 0.5)),
+  diamond: (u, v) => 1 - Math.abs(u - Math.floor(u) - 0.5) - Math.abs(v - Math.floor(v) - 0.5),
+  chain: (u, v) => 0.68 * Math.cos(TAU * u) + 0.32 * Math.cos(TAU * v),
+  line: (u) => Math.cos(TAU * u),
+  cross: (u, v) => Math.max(Math.cos(TAU * u), Math.cos(TAU * v)),
+  wave: (u, v) => Math.cos(TAU * (u + 0.2 * Math.sin((TAU * v) / 2.5))),
+}
+const ign = (x, y) => { const t = 52.9829189 * ((0.06711056 * x + 0.00583715 * y) % 1); return t - Math.floor(t) }
+function makeSpot(type, w, h, ca, sa, per) {
+  const cell = CELL[type]
+  if (cell) return (x, y) => cell(x * ca + y * sa, -x * sa + y * ca)
+  const cx = w / 2, cy = h / 2
+  if (type === 'ring') return (x, y) => Math.cos((TAU * Math.hypot(x - cx, y - cy)) / per)
+  if (type === 'burst') {
+    const n = Math.max(12, Math.round((TAU * Math.min(w, h)) / 3 / per))
+    return (x, y) => Math.cos(n * Math.atan2(y - cy, x - cx))
+  }
+  const g = Math.max(1, Math.round(per / 4))
+  return (x, y) => 1 - ign(Math.floor(x / g), Math.floor(y / g))
+}
+// 浓度 → 实际着墨面积，照原版 print_screen：它直接拿浓度和点函数 1 - (cos u + cos v + 2) / 4 比，
+// 所以「18%」实际只着墨约一成。按这条曲线换算，各类网点的观感密度都和原版一致
+const AREA = (() => {
+  const M = 128, vals = new Float32Array(M * M)
+  for (let j = 0; j < M; j++) for (let i = 0; i < M; i++) vals[j * M + i] = 1 - (Math.cos((TAU * (i + 0.5)) / M) + Math.cos((TAU * (j + 0.5)) / M) + 2) / 4
+  vals.sort()
+  const a = new Float32Array(257)
+  let p = 0
+  for (let q = 0; q <= 256; q++) { const c = q / 256; while (p < vals.length && vals[p] < c) p++; a[q] = p / vals.length }
+  return a
+})()
+const thrCache = new Map()
+function thresholds(type) {
+  if (thrCache.has(type)) return thrCache.get(type)
+  const M = 96, vals = new Float32Array(M * M)
+  const f = CELL[type] ?? (type === 'sand' ? null : CELL.line)
+  for (let j = 0; j < M; j++) for (let i = 0; i < M; i++) vals[j * M + i] = f ? f((i + 0.5) / M, (j + 0.5) / M) : (j * M + i + 0.5) / (M * M)
+  vals.sort()
+  const lut = new Float32Array(257)
+  for (let q = 0; q <= 256; q++) { const c = q / 256; lut[q] = c <= 0 ? Infinity : c >= 1 ? -Infinity : vals[Math.floor((1 - c) * (vals.length - 1))] }
+  thrCache.set(type, lut)
+  return lut
+}
+// 出图分辨率：网点间距不到 PRINT_PITCH 像素时，整张放大 R 倍再印——两三个像素宽的网点拼不出圆，
+// 印刷能印出圆点也是因为分辨率比网点高得多。明暗、分档仍在计算分辨率上做，只有最后一步在出图分辨率上
+const PRINT_PITCH = 10
+const S = 2
+const printScale = (P) => Math.max(1, Math.ceil(PRINT_PITCH / (W / P.lines)))
+// 网格向量在出图像素上取整：间距和角度会被微调一点，换来每个网点的像素形状都一样（否则大小周期性起伏）
+function lattice(P) {
+  const R = printScale(P), pitch = (R * W) / P.lines, t = (P.angle * Math.PI) / 180
+  let a = Math.round(pitch * Math.cos(t)), b = Math.round(pitch * Math.sin(t))
+  if (a === 0 && b === 0) a = 1
+  return { a, b, R, pitch: Math.hypot(a, b) / R, angle: (Math.atan2(b, a) * 180) / Math.PI }
+}
+
+// ---------- 管线各阶段（按参数分段缓存） ----------
+const key = (P, names) => names.map((n) => P[n]).join('|')
+function stageLevels(P) {      // Manga Levels（+ 饱和色提亮）
+  const kk = key(P, ['black', 'white', 'gamma', 'hk', 'guard'])
+  if (cache.levels?.k === kk) return cache.levels.v
+  const L = new Float32Array(N), span = Math.max(1e-3, P.white - P.black), inv = 1 / P.gamma
+  for (let i = 0; i < N; i++) {
+    let v = gray[i]
+    if (P.hk > 0) { let w = Math.min(1, Math.max(0, (Lraw[i] - P.guard) / 20)); w = w * w * (3 - 2 * w); v += (P.hk * w * (Vhk[i] - Lraw[i])) / 100 }
+    L[i] = Math.min(1, Math.max(0, (v - P.black) / span)) ** inv
+  }
+  cache.levels = { k: kk, v: L }
+  return L
+}
+function stageInk(P, L) {      // 原版 ink_layer + value_map：墨层、去网、压平
+  const kk = cache.levels.k + '|' + key(P, ['solid'])
+  if (cache.ink?.k === kk) return cache.ink.v
+  const sb = gauss(L, 1.5 * k), solid = new Uint8Array(N)
+  for (let i = 0; i < N; i++) solid[i] = sb[i] < P.solid ? 1 : 0
+  const Lb = gauss(L, 0.7 * k), Lm = box(Lb, odd(15 * k) >> 1), line = new Uint8Array(N)
+  for (let i = 0; i < N; i++) line[i] = Lb[i] < Lm[i] - 0.07 && Lb[i] < 0.65 ? 1 : 0
+  // 笔画细长，网点或一团生成噪点是团状的
+  const keep = keepComponents(line, true, (a, w, h) => (Math.max(w, h) >= 10 * k && a >= 12 * k * k && a < 0.6 * w * h + 40 * k * k) || a >= 400 * k * k)
+  let ink = new Uint8Array(N)
+  for (let i = 0; i < N; i++) ink[i] = solid[i] | keep[i]
+  ink = keepComponents(ink, true, (a) => a >= 6 * k * k)
+  const strokes = new Uint8Array(N)
+  for (let i = 0; i < N; i++) strokes[i] = ink[i] & (solid[i] ^ 1)
+  // 归一化卷积：挖掉墨线再模糊，线条旁边不留暗晕
+  const m = new Float32Array(N), Lm2 = new Float32Array(N)
+  for (let i = 0; i < N; i++) { m[i] = ink[i] ? 0 : 1; Lm2[i] = L[i] * m[i] }
+  const num = gauss(Lm2, 2.5 * k), den = gauss(m, 2.5 * k)
+  let V = new Float32Array(N)
+  for (let i = 0; i < N; i++) V[i] = num[i] / Math.max(den[i], 1e-3)
+  for (let t = 0; t < 2; t++) V = bilateral(V, odd(9 * k), 0.1, 9 * k)
+  const v = { ink, strokes, V, solid }
+  cache.ink = { k: kk, v }
+  return v
+}
+function stagePen(P) {         // 本页加的细尺度 DoG 线稿，在原图 L* 上提
+  const kk = key(P, ['fine', 'fineSigma', 'coarse', 'minArea'])
+  if (cache.pen?.k === kk) return cache.pen.v
+  const bf = gauss(Lraw, P.fineSigma * k), bc = gauss(Lraw, 3 * k), m = new Uint8Array(N)
+  for (let i = 0; i < N; i++) m[i] = (bf[i] - Lraw[i] > P.fine && Lraw[i] < 90) || (bc[i] - Lraw[i] > P.coarse && Lraw[i] < 65) ? 1 : 0
+  const v = keepComponents(m, true, (a) => a >= P.minArea * k * k)
+  cache.pen = { k: kk, v }
+  return v
+}
+// 淡边描线：Canny（梯度 + 非极大值抑制 + 双阈值滞后）后按梯度方向分 8 组，同组相邻像素连成块，
+// 每块近似一条直线段；用主成分分析量长和宽，只留又长又细的。楼的直边整条保留，云的弯边被切碎丢掉。
+function stageEdges(P) {
+  const kk = key(P, ['edgeLow', 'edgeLen'])
+  if (cache.edges?.k === kk) return cache.edges.v
+  const Ls = gauss(Lraw, 1.2 * k), mag = new Float32Array(N), bin = new Uint8Array(N)
+  for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+    const i = y * W + x, gx = (Ls[i + 1] - Ls[i - 1]) / 2, gy = (Ls[i + W] - Ls[i - W]) / 2
+    mag[i] = Math.hypot(gx, gy)
+    let a = Math.atan2(gy, gx); if (a < 0) a += Math.PI
+    bin[i] = Math.min(7, Math.floor(a / (Math.PI / 8)))
+  }
+  const nms = new Uint8Array(N), lo = P.edgeLow, hi = P.edgeLow * 2.5
+  for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+    const i = y * W + x, m = mag[i]
+    if (m < lo) continue
+    const q = ((bin[i] + 1) >> 1) & 3   // 0 横向梯度，1 斜 45°，2 纵向，3 斜 135°
+    const o = q === 0 ? 1 : q === 1 ? W + 1 : q === 2 ? W : W - 1
+    if (m >= mag[i - o] && m >= mag[i + o]) nms[i] = m >= hi ? 2 : 1
+  }
+  // 滞后：从强边缘出发，把相连的弱边缘吸进来
+  const stack = []
+  for (let i = 0; i < N; i++) if (nms[i] === 2) stack.push(i)
+  while (stack.length) {
+    const i = stack.pop()
+    for (const o of [-W - 1, -W, -W + 1, -1, 1, W - 1, W, W + 1]) { const j = i + o; if (j >= 0 && j < N && nms[j] === 1) { nms[j] = 2; stack.push(j) } }
+  }
+  // 同方向组内连通
+  const parent = new Int32Array(N).fill(-1)
+  const find = (i) => { while (parent[i] !== i) { parent[i] = parent[parent[i]]; i = parent[i] } return i }
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = y * W + x
+    if (nms[i] !== 2) continue
+    parent[i] = i
+    for (const j of [i - 1, i - W - 1, i - W, i - W + 1]) {
+      if (j < 0 || (x === 0 && (j === i - 1 || j === i - W - 1)) || (x === W - 1 && j === i - W + 1)) continue
+      if (nms[j] === 2 && bin[j] === bin[i]) { const a = find(j), b = find(i); if (a !== b) parent[b] = a }
+    }
+  }
+  const sx = new Map()
+  for (let i = 0; i < N; i++) {
+    if (nms[i] !== 2) continue
+    const r = find(i), x = i % W, y = (i - x) / W
+    let s = sx.get(r); if (!s) sx.set(r, (s = [0, 0, 0, 0, 0, 0]))
+    s[0]++; s[1] += x; s[2] += y; s[3] += x * x; s[4] += y * y; s[5] += x * y
+  }
+  const keep = new Set(), minLen = P.edgeLen * k
+  for (const [r, [n, a, b, aa, bb, ab]] of sx) {
+    if (n < minLen * 0.6) continue
+    const mx = a / n, my = b / n, cxx = aa / n - mx * mx, cyy = bb / n - my * my, cxy = ab / n - mx * my
+    const tr = cxx + cyy, det = cxx * cyy - cxy * cxy, d = Math.sqrt(Math.max(tr * tr / 4 - det, 0))
+    const l1 = tr / 2 + d, l2 = Math.max(tr / 2 - d, 0)
+    if (Math.sqrt(12 * l1) >= minLen && Math.sqrt(l2) < 1.2) keep.add(r)
+  }
+  const v = new Uint8Array(N)
+  for (let i = 0; i < N; i++) if (nms[i] === 2 && keep.has(find(i))) v[i] = 1
+  cache.edges = { k: kk, v }
+  return v
+}
+function stageTone(P, inkSt) { // 原版 tone_plan + 渐变：分档、并碎块、渐变网点
+  const kk = cache.ink.k + '|' + key(P, ['wp', 'mid', 'bp', 'minRegion', 'grad', 'light', 'dark', 'darkSplit', 'darkGap', 'darkFloor'])
+  if (cache.tone?.k === kk) return cache.tone.v
+  const { V } = inkSt, bp = Math.min(P.bp, P.wp - 1e-3), mid = Math.min(Math.max(P.mid, bp), P.wp)
+  let level = new Uint8Array(N)
+  for (let i = 0; i < N; i++) level[i] = V[i] > P.wp ? 0 : V[i] > mid ? 1 : V[i] > bp ? 2 : 3
+  level = medianCat(level, [0, 1, 2, 3], odd(11 * k))
+  // 小于 minRegion 的色块并入周围：每块网点都是有意为之的平涂
+  for (const lv of [1, 2, 3, 0]) {
+    const mask = new Uint8Array(N); for (let i = 0; i < N; i++) mask[i] = level[i] === lv ? 1 : 0
+    const { label, area } = components(mask, false)
+    const small = area.map((a) => a < P.minRegion * k * k)
+    if (!small.some(Boolean)) continue
+    const tmp = new Uint8Array(N), hole = new Uint8Array(N)
+    for (let i = 0; i < N; i++) { hole[i] = label[i] >= 0 && small[label[i]] ? 1 : 0; tmp[i] = hole[i] ? 255 : level[i] }
+    const fill = medianCat(tmp, [0, 1, 2, 3, 255], odd(21 * k))
+    for (let i = 0; i < N; i++) if (hole[i] && fill[i] !== 255) level[i] = fill[i]
+  }
+  // 被暗部分层抬到深网点的像素：出图时要从实黑墨层里扣掉，否则又被涂黑
+  const lifted = new Uint8Array(N)
+  if (P.darkSplit) {
+    // 暗部分层：大块实黑里，在色阶前的灰度上做 Otsu 二分；两类差够大时，较亮的一类改成深网点
+    if (!cache.rs) cache.rs = gauss(gray, 2.5 * k)
+    const rs = cache.rs, mask = new Uint8Array(N)
+    // 大块深色在墨层阶段就被判成实黑（去网时整块挖掉，里面的明度图无效），所以范围要把实黑墨层也算上
+    for (let i = 0; i < N; i++) mask[i] = level[i] === 3 || inkSt.solid[i] ? 1 : 0
+    const { label, area } = components(mask, false), minA = 3000 * k * k
+    const idx = new Int32Array(area.length).fill(-1), big = []
+    area.forEach((a, j) => { if (a >= minA) { idx[j] = big.length; big.push(j) } })
+    if (big.length) {
+      const hist = new Float64Array(big.length * 256)
+      for (let i = 0; i < N; i++) { const l = label[i]; if (l >= 0 && idx[l] >= 0) hist[idx[l] * 256 + Math.min(255, Math.round(rs[i] * 255))]++ }
+      const thr = new Float32Array(big.length).fill(2)
+      for (let b = 0; b < big.length; b++) {
+        const h = hist.subarray(b * 256, b * 256 + 256)
+        let tot = 0, sum = 0
+        for (let t = 0; t < 256; t++) { tot += h[t]; sum += t * h[t] }
+        let w0 = 0, s0 = 0, best = -1, bt = 0
+        for (let t = 0; t < 255; t++) {
+          w0 += h[t]; s0 += t * h[t]
+          const w1 = tot - w0; if (!w0 || !w1) continue
+          const m0 = s0 / w0, m1 = (sum - s0) / w1, v = w0 * w1 * (m0 - m1) ** 2
+          if (v > best) { best = v; bt = t }
+        }
+        let n1 = 0, a0 = 0, a1 = 0
+        for (let t = 0; t < 256; t++) { if (t <= bt) a0 += t * h[t]; else { a1 += t * h[t]; n1 += h[t] } }
+        const m0 = a0 / Math.max(tot - n1, 1) / 255, m1 = a1 / Math.max(n1, 1) / 255
+        if (m1 - m0 >= P.darkGap && n1 >= 0.15 * tot) thr[b] = (bt + 0.5) / 255
+      }
+      for (let i = 0; i < N; i++) { const l = label[i]; if (l >= 0 && idx[l] >= 0 && rs[i] > thr[idx[l]] && rs[i] > P.darkFloor) { level[i] = 2; lifted[i] = 1 } }
+    }
+  }
+  const tones = [0, P.light, P.dark, 1], cover = new Float32Array(N)
+  for (let i = 0; i < N; i++) cover[i] = tones[level[i]]
+  if (P.grad > 0) {
+    // 色块内部明度波动大，说明藏着渐变：那里网点浓度改为跟着明暗走
+    const Vs = gauss(V, 3 * k), spread = new Float32Array(N)
+    for (let lv = 0; lv < 4; lv++) {
+      const mask = new Uint8Array(N); for (let i = 0; i < N; i++) mask[i] = level[i] === lv ? 1 : 0
+      const { label, area } = components(mask, false)
+      const s1 = new Float64Array(area.length), s2 = new Float64Array(area.length)
+      for (let i = 0; i < N; i++) { const l = label[i]; if (l >= 0) { s1[l] += Vs[i]; s2[l] += Vs[i] * Vs[i] } }
+      for (let i = 0; i < N; i++) { const l = label[i]; if (l >= 0) { const mu = s1[l] / area[l]; spread[i] = Math.sqrt(Math.max(s2[l] / area[l] - mu * mu, 0)) } }
+    }
+    const aRaw = new Float32Array(N)
+    for (let i = 0; i < N; i++) aRaw[i] = Math.min(1, Math.max(0, (spread[i] - 0.03) / 0.05)) * P.grad
+    const a = gauss(aRaw, 4 * k), span = Math.max(1e-3, P.wp - bp)
+    for (let i = 0; i < N; i++) cover[i] = cover[i] * (1 - a[i]) + Math.min(1, Math.max(0, (P.wp - Vs[i]) / span)) * a[i]
+  }
+  // 抬上来的像素直接给深网点：它们落在实黑里，渐变用的明度图在那里无效
+  for (let i = 0; i < N; i++) if (lifted[i]) cover[i] = P.dark
+  const v = { level, cover, lifted }
+  cache.tone = { k: kk, v }
+  return v
+}
+function stagePrint(P, inkSt, toneSt, pen, edges) {  // 墨层、白线在计算分辨率上定，网点在出图分辨率上印
+  const { cover, level } = toneSt
+  const strokes = Uint8Array.from(inkSt.strokes)
+  if (pen) for (let i = 0; i < N; i++) strokes[i] |= pen[i]
+  if (edges) for (let i = 0; i < N; i++) strokes[i] |= edges[i]
+  // black：必须涂黑；white：必须留白（实黑里切出的白线）
+  const black = new Float32Array(N), white = new Float32Array(N)
+  for (let i = 0; i < N; i++) black[i] = (inkSt.ink[i] & (toneSt.lifted[i] ^ 1)) | strokes[i]
+  if (P.whiteLines) {
+    // 黑上画黑看不见：实黑里的长笔画切成细白线，黑块先收一圈，外轮廓保持黑
+    const l3 = new Uint8Array(N); for (let i = 0; i < N; i++) l3[i] = level[i] === 3 ? 1 : 0
+    const beta = erode(l3, odd(3 * k))
+    const cutL = erode(keepComponents(strokes, true, (_, w, h) => Math.max(w, h) >= 40 * k), k < 1.6 ? 2 : 3)
+    for (let i = 0; i < N; i++) { if (beta[i]) black[i] = 1; if (beta[i] & cutL[i]) white[i] = 1 }
+  }
+  const { a, b, R } = lattice(P), n2 = a * a + b * b
+  const PW = W * R, PH = H * R
+  const spotAt = makeSpot(P.screen, PW * S, PH * S, a / n2 / S, b / n2 / S, Math.sqrt(n2) * S), lut = thresholds(P.screen)
+  // 双线性取样（计算分辨率 → 出图分辨率），墨线放大后边缘是平滑的斜边而不是锯齿方块
+  const sample = (m, fx, fy) => {
+    const x0 = Math.min(W - 1, Math.max(0, Math.floor(fx))), y0 = Math.min(H - 1, Math.max(0, Math.floor(fy)))
+    const x1 = Math.min(W - 1, x0 + 1), y1 = Math.min(H - 1, y0 + 1), tx = Math.min(1, Math.max(0, fx - x0)), ty = Math.min(1, Math.max(0, fy - y0))
+    const top = m[y0 * W + x0] * (1 - tx) + m[y0 * W + x1] * tx, bot = m[y1 * W + x0] * (1 - tx) + m[y1 * W + x1] * tx
+    return top * (1 - ty) + bot * ty
+  }
+  const page = new Uint8Array(PW * PH), inv = 1 / R
+  for (let y = 0, o = 0; y < PH; y++) {
+    const fy = (y + 0.5) * inv - 0.5
+    for (let x = 0; x < PW; x++, o++) {
+      const fx = (x + 0.5) * inv - 0.5
+      if (R === 1 ? white[o] : sample(white, fx, fy) > 0.5) continue
+      if (R === 1 ? black[o] : sample(black, fx, fy) > 0.5) { page[o] = 1; continue }
+      const c = R === 1 ? cover[o] : sample(cover, fx, fy)
+      if (c >= 0.999) { page[o] = 1; continue }
+      if (c <= 0.001) continue
+      const thr = lut[Math.round(AREA[Math.round(c * 256)] * 256)]
+      let hit = 0
+      for (let sy = 0; sy < S; sy++) for (let sx = 0; sx < S; sx++) if (spotAt(x * S + sx, y * S + sy) > thr) hit++
+      page[o] = hit * 2 >= S * S ? 1 : 0
+    }
+  }
+  return { page, R }
+}
+
+let pending = null, busy = false
+onmessage = (e) => {
+  const m = e.data
+  if (m.type === 'image') {
+    W = m.w; H = m.h; N = W * H; k = W / 1024
+    gray = m.gray; Lraw = m.L; Vhk = m.V
+    for (const kk of Object.keys(cache)) delete cache[kk]
+    return
+  }
+  pending = m
+  if (!busy) run()
+}
+function run() {
+  busy = true
+  while (pending) {
+    const { P, id } = pending; pending = null
+    const t0 = performance.now()
+    const L = stageLevels(P), inkSt = stageInk(P, L), pen = P.pen ? stagePen(P) : null
+    const edges = P.edgeLines ? stageEdges(P) : null
+    const toneSt = stageTone(P, inkSt), { page, R } = stagePrint(P, inkSt, toneSt, pen, edges)
+    postMessage({ id, page, R, ms: performance.now() - t0, pitch: lattice(P) }, [page.buffer])
+  }
+  busy = false
+}
+</script>
+
+<script>
+// 默认参数 = 原版 Manga-Lite 默认值（Levels 0.20 / 0.70 / γ1.3，Finish 200 线、白 0.80、黑 0.30、18% / 42%、渐变 1.0、白线开）
+// + 本页的细线稿
+const DEFAULTS = {
+  black: 0.20, white: 0.70, gamma: 1.3, hk: 0, guard: 25,
+  wp: 0.80, mid: 0.55, bp: 0.30, minRegion: 600, grad: 1, solid: 0.22,
+  screen: 'dot', lines: 200, angle: 45, light: 0.18, dark: 0.42,
+  pen: true, fine: 6, fineSigma: 1.2, coarse: 7, minArea: 4, whiteLines: true,
+  darkSplit: false, darkGap: 0.035, darkFloor: 0.2, edgeLines: false, edgeLow: 1.2, edgeLen: 28,
+  size: 1200,
+}
+const KEY = 'tone-bench:params:v4'
+let P = { ...DEFAULTS }
+try { Object.assign(P, JSON.parse(localStorage.getItem(KEY) || '{}')) } catch {}
+
+let pitchInfo = null
+const SPEC = [
+  { k: 'black', g: 'light', label: '黑场', min: 0, max: 0.6, step: 0.01 },
+  { k: 'white', g: 'light', label: '白场', min: 0.4, max: 1, step: 0.01, note: '调低直到皮肤、浅色头发变成纸白。' },
+  { k: 'gamma', g: 'light', label: '伽马', min: 0.5, max: 2.5, step: 0.05, note: '大于 1 提亮中间调。' },
+  { k: 'hk', g: 'light', label: '饱和色提亮', min: 0, max: 1.5, step: 0.05, note: '按 Helmholtz–Kohlrausch 效应调亮高饱和色，红衣服、蓝袜子不再压成黑块。' },
+  { k: 'guard', g: 'light', label: '暗部保护', unit: 'L*', min: 0, max: 60, step: 1, note: 'L* 低于此值的颜色不提亮，深色头发保持实黑。' },
+  { k: 'wp', g: 'levels', label: '纸白阈值', min: 0.4, max: 1, step: 0.01 },
+  { k: 'mid', g: 'levels', label: '浅 / 深网点分界', min: 0.2, max: 0.9, step: 0.01 },
+  { k: 'bp', g: 'levels', label: '实黑阈值', min: 0, max: 0.6, step: 0.01, note: '调高让深色衣服变成实黑。' },
+  { k: 'minRegion', g: 'levels', label: '最小色块', unit: 'px²', min: 0, max: 3000, step: 50, note: '按 1024 宽计。小于它的色块并入周围，网点区域更完整。' },
+  { k: 'grad', g: 'levels', label: '渐变网点', min: 0, max: 1, step: 0.05, note: '原图明暗平滑过渡的地方，网点跟着变化，而不是切成平涂台阶。' },
+  { k: 'lines', g: 'screen', label: '线数（跨图宽）', min: 40, max: 600, step: 10, extra: () => pitchInfo ? `间距 ${pitchInfo.pitch.toFixed(2)} px` : '' },
+  { k: 'angle', g: 'screen', label: '角度', unit: '°', min: 0, max: 90, step: 1, extra: () => pitchInfo ? `实际 ${pitchInfo.angle.toFixed(1)}°` : '' },
+  { k: 'light', g: 'screen', label: '浅网点浓度', unit: '%', scale: 100, min: 0.02, max: 0.9, step: 0.01 },
+  { k: 'dark', g: 'screen', label: '深网点浓度', unit: '%', scale: 100, min: 0.02, max: 0.95, step: 0.01 },
+  { k: 'solid', g: 'lines', label: '实黑判定', min: 0.05, max: 0.5, step: 0.01, note: '模糊后比它暗的整块涂黑。' },
+  { k: 'fine', g: 'lines', label: '细线灵敏度', unit: 'L*', min: 1, max: 20, step: 0.5, note: '越小越敏感，能抓到嘴、睫毛这类淡而细的线。' },
+  { k: 'fineSigma', g: 'lines', label: '细线尺度', unit: 'σ', min: 0.6, max: 3, step: 0.1 },
+  { k: 'coarse', g: 'lines', label: '粗线灵敏度', unit: 'L*', min: 1, max: 25, step: 0.5 },
+  { k: 'minArea', g: 'lines', label: '去碎点', unit: 'px', min: 1, max: 40, step: 1 },
+  { k: 'darkGap', g: 'dark', label: '分层灵敏度', min: 0.01, max: 0.12, step: 0.005, note: '暗区内两类明度差超过它才分层。越小分得越多。' },
+  { k: 'darkFloor', g: 'dark', label: '分层下限', min: 0.05, max: 0.4, step: 0.005, note: '原图灰度高于它才抬成网点。深灰布料和黑色书包往往只差一点，按图调。' },
+  { k: 'edgeLow', g: 'edges', label: '淡边灵敏度', unit: 'L*/px', min: 0.4, max: 5, step: 0.1, note: '越小越能抓到雾里的淡边，也越容易描到不想要的边。' },
+  { k: 'edgeLen', g: 'edges', label: '最短线段', unit: 'px', min: 8, max: 120, step: 2, note: '按 1024 宽计。只描比它长的直线段。' },
+  { k: 'size', g: 'output', label: '处理尺寸（长边）', unit: 'px', min: 600, max: 2400, step: 100, note: '越大越清晰也越慢；参数按图宽归一，换尺寸效果不变。图太小时会自动放大，保证网点间距至少 5 px。' },
+]
+
+// ---------- 状态 ----------
+let src = null, srcName = '示例图（程序生成）'
+let W = 0, H = 0, rgb = null
+const out = document.getElementById('out')
+const view = out.getContext('2d')
+const full = document.createElement('canvas')
+const fctx = full.getContext('2d')
+const stage = document.getElementById('stage')
+const hint = document.getElementById('hint')
+const worker = new Worker(URL.createObjectURL(new Blob([document.getElementById('worker-src').textContent], { type: 'text/javascript' })))
+let resultImg = null, reqId = 0, lastMs = 0
+
+const toLin = new Float32Array(256)
+for (let i = 0; i < 256; i++) { const c = i / 255; toLin[i] = c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4 }
+const fLab = (t) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116)
+
+// 线数按图宽算：图太小时网点只剩两三个像素，画不圆、缩小看还会起干涉圆圈。
+// 所以必要时放大处理，保证网点间距至少 MIN_PITCH 像素（原版 README 也建议每个点约 5 px）
+const MIN_PITCH = 5
+const scaleFor = () => Math.max(Math.min(1, P.size / Math.max(src.width, src.height)), (MIN_PITCH * P.lines) / src.width)
+const needWidth = () => Math.max(1, Math.round(src.width * scaleFor()))
+function prepare() {
+  const s = scaleFor()
+  W = Math.max(1, Math.round(src.width * s)); H = Math.max(1, Math.round(src.height * s))
+  const c = document.createElement('canvas'); c.width = W; c.height = H
+  const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(src, 0, 0, W, H)
+  rgb = g.getImageData(0, 0, W, H)
+  const d = rgb.data, n = W * H
+  const gray = new Float32Array(n), L = new Float32Array(n), V = new Float32Array(n)
+  for (let i = 0, j = 0; i < n; i++, j += 4) {
+    const R = d[j], G = d[j + 1], B = d[j + 2]
+    gray[i] = (0.299 * R + 0.587 * G + 0.114 * B) / 255
+    const r = toLin[R], gg = toLin[G], b = toLin[B]
+    const fx = fLab((0.4124 * r + 0.3576 * gg + 0.1805 * b) / 0.95047)
+    const fy = fLab(0.2126 * r + 0.7152 * gg + 0.0722 * b)
+    const fz = fLab((0.0193 * r + 0.1192 * gg + 0.9505 * b) / 1.08883)
+    const l = 116 * fy - 16, a = 500 * (fx - fy), bb = 200 * (fy - fz)
+    L[i] = l
+    V[i] = l + (2.5 - 0.025 * l) * (0.116 * Math.abs(Math.sin((Math.atan2(bb, a) - Math.PI / 2) / 2)) + 0.085) * Math.hypot(a, bb)
+  }
+  autoFit = true
+  resultImg = null
+  worker.postMessage({ type: 'image', w: W, h: H, gray, L, V }, [gray.buffer, L.buffer, V.buffer])
+}
+
+let showOriginal = false
+function compute() {
+  if (!W) return
+  hint.textContent = `${srcName} · ${W} × ${H} px · 计算中…`
+  worker.postMessage({ type: 'run', P: { ...P }, id: ++reqId })
+}
+worker.onmessage = (e) => {
+  const { id, page, R, ms, pitch } = e.data
+  if (id !== reqId) return
+  pitchInfo = pitch; lastMs = ms
+  rows.get('lines')?.(); rows.get('angle')?.()
+  const PW = W * R, PH = H * R
+  if (full.width !== PW || full.height !== PH) { full.width = PW; full.height = PH; autoFit = true }
+  const img = fctx.createImageData(PW, PH), d = img.data
+  for (let i = 0, j = 0; i < page.length; i++, j += 4) { const c = page[i] ? 22 : 255; d[j] = d[j + 1] = d[j + 2] = c; d[j + 3] = 255 }
+  resultImg = img
+  draw()
+  hint.textContent = `${srcName} · 出图 ${PW} × ${PH} px · ${Math.round(ms)} ms`
+}
+function draw() {
+  if (!W) return
+  if (showOriginal && rgb) {
+    const c = document.createElement('canvas'); c.width = W; c.height = H; c.getContext('2d').putImageData(rgb, 0, 0)
+    fctx.imageSmoothingQuality = 'high'; fctx.drawImage(c, 0, 0, full.width, full.height)
+  }
+  else if (resultImg) fctx.putImageData(resultImg, 0, 0)
+  else return
+  buildMips()
+  present()
+}
+let queued = false
+function schedule() { if (queued) return; queued = true; requestAnimationFrame(() => { queued = false; compute() }) }
+
+// ---------- 预览视口：缩放与平移 ----------
+// vs = 每个图像像素占几个 CSS 像素，(vx, vy) = 图像左上角在画布里的位置（CSS 像素）。
+// 二值网点交给浏览器缩放会出摩尔纹，所以自己画：放大（≥ 1 物理像素 / 图像像素）用最近邻，网点边缘锐利；
+// 缩小时从对半缩小的金字塔里挑一级，按缩放比例轻微模糊后再缩，网点呈现为平滑的灰
+let vs = 1, vx = 0, vy = 0, autoFit = true, mips = []
+const zoomLabel = document.getElementById('zoomLabel')
+function buildMips() {
+  mips = [full]
+  let cur = full
+  while (cur.width > 64 && cur.height > 64) {
+    const c = document.createElement('canvas')
+    c.width = Math.max(1, Math.round(cur.width / 2)); c.height = Math.max(1, Math.round(cur.height / 2))
+    const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'
+    g.drawImage(cur, 0, 0, c.width, c.height)
+    mips.push(c); cur = c
+  }
+}
+function fitScale() {
+  const pad = 24
+  return Math.min((stage.clientWidth - 2 * pad) / full.width, (stage.clientHeight - 2 * pad) / full.height)
+}
+function fitView() {
+  vs = Math.max(1e-3, fitScale())
+  vx = (stage.clientWidth - full.width * vs) / 2; vy = (stage.clientHeight - full.height * vs) / 2
+  autoFit = true
+}
+function zoomAt(ns, cx, cy) {
+  const dpr = window.devicePixelRatio || 1
+  ns = Math.min(Math.max(ns, Math.min(fitScale(), 1 / dpr) * 0.5), 32 / dpr)
+  vx = cx - ((cx - vx) * ns) / vs; vy = cy - ((cy - vy) * ns) / vs; vs = ns
+  autoFit = false
+  present()
+}
+function present() {
+  if (!W || !mips.length) return
+  const dpr = window.devicePixelRatio || 1, cw = stage.clientWidth, ch = stage.clientHeight
+  if (autoFit) fitView()
+  const bw = Math.round(cw * dpr), bh = Math.round(ch * dpr)
+  if (out.width !== bw || out.height !== bh) { out.width = bw; out.height = bh }
+  const k = vs * dpr
+  view.setTransform(1, 0, 0, 1, 0, 0)
+  view.clearRect(0, 0, bw, bh)
+  // 纸的阴影和描边
+  const x = vx * dpr, y = vy * dpr, w = full.width * k, h = full.height * k
+  const cs = getComputedStyle(document.documentElement)
+  view.filter = 'none'
+  view.fillStyle = cs.getPropertyValue('--border').trim()
+  view.fillRect(Math.round(x) - 1, Math.round(y) - 1, Math.round(w) + 2, Math.round(h) + 2)
+  if (k >= 1) {
+    view.imageSmoothingEnabled = false
+    view.drawImage(full, x, y, w, h)
+  } else {
+    let lv = 0
+    while (lv + 1 < mips.length && mips[lv + 1].width >= full.width * k) lv++
+    const src = mips[lv], shrink = src.width / (full.width * k)
+    view.imageSmoothingEnabled = true; view.imageSmoothingQuality = 'high'
+    view.filter = shrink > 1.05 ? `blur(${(0.45 * shrink).toFixed(2)}px)` : 'none'
+    view.drawImage(src, x, y, w, h)
+    view.filter = 'none'
+  }
+  zoomLabel.textContent = `${Math.round(k * 100)}%`
+}
+new ResizeObserver(() => present()).observe(stage)
+
+// 滚轮缩放（以指针为中心）
+stage.addEventListener('wheel', (e) => {
+  e.preventDefault()
+  const r = stage.getBoundingClientRect()
+  zoomAt(vs * Math.pow(1.0015, -e.deltaY * (e.deltaMode === 1 ? 16 : 1)), e.clientX - r.left, e.clientY - r.top)
+}, { passive: false })
+// 拖动平移；两指捏合缩放
+{
+  const pts = new Map()
+  let last = null
+  const mid = () => { const a = [...pts.values()]; return a.length > 1 ? { x: (a[0].x + a[1].x) / 2, y: (a[0].y + a[1].y) / 2, d: Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) } : { x: a[0].x, y: a[0].y, d: 0 } }
+  stage.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('.zoom')) return
+    stage.setPointerCapture(e.pointerId)
+    const r = stage.getBoundingClientRect()
+    pts.set(e.pointerId, { x: e.clientX - r.left, y: e.clientY - r.top })
+    last = mid(); stage.classList.add('panning')
+  })
+  stage.addEventListener('pointermove', (e) => {
+    if (!pts.has(e.pointerId)) return
+    const r = stage.getBoundingClientRect()
+    pts.set(e.pointerId, { x: e.clientX - r.left, y: e.clientY - r.top })
+    const m = mid()
+    vx += m.x - last.x; vy += m.y - last.y; autoFit = false
+    if (pts.size > 1 && last.d > 0 && m.d > 0) return (zoomAt(vs * (m.d / last.d), m.x, m.y), (last = m))
+    last = m
+    present()
+  })
+  const up = (e) => { pts.delete(e.pointerId); last = pts.size ? mid() : null; if (!pts.size) stage.classList.remove('panning') }
+  stage.addEventListener('pointerup', up)
+  stage.addEventListener('pointercancel', up)
+}
+const oneToOne = (cx = stage.clientWidth / 2, cy = stage.clientHeight / 2) => zoomAt(1 / (window.devicePixelRatio || 1), cx, cy)
+stage.addEventListener('dblclick', (e) => {
+  if (e.target.closest('.zoom')) return
+  const r = stage.getBoundingClientRect()
+  if (autoFit) oneToOne(e.clientX - r.left, e.clientY - r.top)
+  else { fitView(); present() }
+})
+document.getElementById('zoomIn').addEventListener('click', () => zoomAt(vs * 1.25, stage.clientWidth / 2, stage.clientHeight / 2))
+document.getElementById('zoomOut').addEventListener('click', () => zoomAt(vs / 1.25, stage.clientWidth / 2, stage.clientHeight / 2))
+document.getElementById('zoomFit').addEventListener('click', () => { fitView(); present() })
+document.getElementById('zoom1').addEventListener('click', () => oneToOne())
+window.addEventListener('keydown', (e) => {
+  if (e.target.closest?.('input, textarea')) return
+  if (e.key === '0') { fitView(); present() }
+  else if (e.key === '1') oneToOne()
+})
+
+// ---------- 滑块（照 llr 的 SliderRow） ----------
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
+const decimals = (x) => (String(x).split('.')[1] || '').length
+const rows = new Map()
+function save() { try { localStorage.setItem(KEY, JSON.stringify(P)) } catch {} }
+
+function buildRow(sp) {
+  const scale = sp.scale ?? 1
+  const row = document.createElement('div')
+  row.className = 'slider'
+  row.innerHTML = `
+    <div class="slider-head">
+      <label for="${sp.k}">${sp.label}${sp.unit ? ` <span class="slider-extra">${sp.unit}</span>` : ''}</label>
+      <span class="slider-extra" data-extra></span>
+      <input class="slider-number" type="number" aria-label="${sp.label}" min="${sp.min * scale}" max="${sp.max * scale}" step="${+(sp.step * scale).toFixed(6)}">
+    </div>
+    <span class="range-wrap">
+      <span class="range-rail"></span><span class="range-fill"></span><span class="range-mark"></span><span class="range-thumb"></span>
+      <input id="${sp.k}" class="range-input" type="range" min="${sp.min}" max="${sp.max}" step="${sp.step}" title="点选后可滚轮微调（Shift ×10）· 双击复位">
+    </span>
+    ${sp.note ? `<div class="note">${sp.note}</div>` : ''}`
+  const wrap = row.querySelector('.range-wrap')
+  const range = row.querySelector('.range-input')
+  const num = row.querySelector('.slider-number')
+  const frac = (v) => clamp((v - sp.min) / (sp.max - sp.min), 0, 1)
+  wrap.style.setProperty('--range-o', sp.min < 0 && sp.max > 0 ? frac(0) : 0)
+  // 默认值落在两端时不画刻度：空的填充已经说明了
+  const d = DEFAULTS[sp.k], mark = row.querySelector('.range-mark')
+  if (d > sp.min && d < sp.max) wrap.style.setProperty('--range-r', frac(d))
+  else mark.hidden = true
+  // 固定小数位（0.20 而不是 0.2），一列数字才对得齐
+  const fmt = (v) => (v * scale).toFixed(decimals(+(sp.step * scale).toFixed(6)))
+  const paint = () => {
+    const v = P[sp.k]
+    wrap.style.setProperty('--range-p', frac(v))
+    if (document.activeElement !== num) num.value = fmt(v)
+    range.value = v
+    row.classList.toggle('is-modified', v !== DEFAULTS[sp.k])
+    if (sp.extra) row.querySelector('[data-extra]').textContent = sp.extra(v)
+  }
+  const set = (v) => {
+    v = clamp(+v.toFixed(decimals(sp.step)), sp.min, sp.max)
+    if (v === P[sp.k]) return paint()
+    P[sp.k] = v
+    paint(); save()
+    if (src && (sp.k === 'size' || (sp.k === 'lines' && needWidth() !== W))) prepare()
+    schedule()
+  }
+  range.addEventListener('input', () => set(range.valueAsNumber))
+  range.addEventListener('dblclick', () => set(DEFAULTS[sp.k]))
+  // 拖动时关掉 --range-p 的过渡，圆盘贴着指针走
+  range.addEventListener('pointerdown', () => {
+    range.focus()
+    wrap.classList.add('is-dragging')
+    const end = () => { wrap.classList.remove('is-dragging'); window.removeEventListener('pointerup', end); window.removeEventListener('pointercancel', end) }
+    window.addEventListener('pointerup', end)
+    window.addEventListener('pointercancel', end)
+  })
+  // 数字框：输入中途不夹值（会吃掉「1」→「12」），提交时再夹到范围内
+  const commit = () => { const raw = num.valueAsNumber; if (Number.isFinite(raw)) set(raw / scale); num.value = fmt(P[sp.k]) }
+  num.addEventListener('change', commit)
+  num.addEventListener('blur', commit)
+  num.addEventListener('keydown', (e) => { if (e.key === 'Enter') num.blur() })
+  rows.set(sp.k, paint)
+  return row
+}
+for (const sp of SPEC) document.querySelector(`.rows[data-group="${sp.g}"]`).append(buildRow(sp))
+
+// 滚轮微调（同 llr）：只有点选的滑块响应，且每个滚动手势只判定一次归属
+{
+  const panel = document.getElementById('panel')
+  let gestureEnd = 0, owner = null
+  panel.addEventListener('wheel', (e) => {
+    const input = e.target.closest?.('.range-input') ?? null
+    const selected = !!input && document.activeElement === input
+    if (e.timeStamp > gestureEnd) owner = selected ? input : null
+    gestureEnd = e.timeStamp + 200
+    if (!owner || owner !== input) return
+    e.preventDefault()
+    const step = Number(owner.step) || 1
+    const next = clamp(Number(owner.value) + (e.deltaY < 0 ? 1 : -1) * step * (e.shiftKey ? 10 : 1), Number(owner.min), Number(owner.max))
+    owner.value = String(+next.toFixed(decimals(step)))
+    owner.dispatchEvent(new Event('input', { bubbles: true }))
+  }, { passive: false })
+}
+
+function syncUI() {
+  for (const paint of rows.values()) paint()
+  for (const id of ['pen', 'whiteLines', 'darkSplit', 'edgeLines']) document.getElementById(id).checked = P[id]
+  for (const b of document.querySelectorAll('[data-screen]')) b.setAttribute('aria-pressed', String(b.dataset.screen === P.screen))
+}
+for (const id of ['pen', 'whiteLines', 'darkSplit', 'edgeLines']) {
+  document.getElementById(id).addEventListener('change', (e) => { P[id] = e.target.checked; save(); schedule() })
+}
+for (const b of document.querySelectorAll('[data-screen]')) {
+  b.addEventListener('click', () => { P.screen = b.dataset.screen; syncUI(); save(); schedule() })
+}
+document.getElementById('reset').addEventListener('click', () => {
+  const size = P.size
+  P = { ...DEFAULTS }
+  syncUI(); save()
+  if (size !== P.size && src) prepare()
+  schedule()
+})
+document.getElementById('copy').addEventListener('click', async (e) => {
+  const label = e.currentTarget.querySelector('span')
+  try { await navigator.clipboard.writeText(JSON.stringify(P, null, 2)); label.textContent = '已复制' }
+  catch { label.textContent = '复制失败' }
+  setTimeout(() => (label.textContent = '复制参数'), 1400)
+})
+const hold = document.getElementById('hold')
+const setOrig = (v) => { showOriginal = v; hold.setAttribute('aria-pressed', String(v)); draw() }
+hold.addEventListener('pointerdown', () => setOrig(true))
+for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) hold.addEventListener(ev, () => showOriginal && setOrig(false))
+hold.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setOrig(true) } })
+hold.addEventListener('keyup', () => setOrig(false))
+// ---------- 载入图片：文件、拖放、粘贴 ----------
+async function loadBlob(blob, name) {
+  try { src = await createImageBitmap(blob); srcName = name || '粘贴的图片'; prepare(); compute() }
+  catch { hint.textContent = '这个文件读不出来，换一张 PNG / JPG / WebP 试试' }
+}
+document.getElementById('file').addEventListener('change', (e) => { const f = e.target.files[0]; if (f) loadBlob(f, f.name) })
+stage.addEventListener('dragover', (e) => { e.preventDefault(); stage.classList.add('drag') })
+stage.addEventListener('dragleave', () => stage.classList.remove('drag'))
+stage.addEventListener('drop', (e) => {
+  e.preventDefault(); stage.classList.remove('drag')
+  const f = [...e.dataTransfer.files].find((x) => x.type.startsWith('image/'))
+  if (f) loadBlob(f, f.name)
+})
+window.addEventListener('paste', (e) => {
+  const it = [...(e.clipboardData?.items || [])].find((x) => x.type.startsWith('image/'))
+  if (it) loadBlob(it.getAsFile(), '粘贴的图片')
+})
+
+// ---------- 网点卡片预览：30% 浓度、固定小间距，颜色跟主题 ----------
+const TAU = 2 * Math.PI
+const PCELL = {
+  dot: (u, v) => (Math.cos(TAU * u) + Math.cos(TAU * v)) / 2,
+  square: (u, v) => 1 - 2 * Math.max(Math.abs(u - Math.floor(u) - 0.5), Math.abs(v - Math.floor(v) - 0.5)),
+  diamond: (u, v) => 1 - Math.abs(u - Math.floor(u) - 0.5) - Math.abs(v - Math.floor(v) - 0.5),
+  chain: (u, v) => 0.68 * Math.cos(TAU * u) + 0.32 * Math.cos(TAU * v),
+  line: (u) => Math.cos(TAU * u),
+  cross: (u, v) => Math.max(Math.cos(TAU * u), Math.cos(TAU * v)),
+  wave: (u, v) => Math.cos(TAU * (u + 0.2 * Math.sin((TAU * v) / 2.5))),
+}
+function previewSpot(type, w, h, per) {
+  const cell = PCELL[type], c = 1 / per / Math.SQRT2
+  if (cell) return (x, y) => cell((x + y) * c, (y - x) * c)
+  if (type === 'ring') return (x, y) => Math.cos((TAU * Math.hypot(x - w / 2, y - h / 2)) / per)
+  if (type === 'burst') return (x, y) => Math.cos(28 * Math.atan2(y - h / 2, x - w / 2))
+  const g = Math.max(1, Math.round(per / 4))
+  return (x, y) => { const t = 52.9829189 * ((0.06711056 * Math.floor(x / g) + 0.00583715 * Math.floor(y / g)) % 1); return 1 - (t - Math.floor(t)) }
+}
+function drawPreviews() {
+  const cs = getComputedStyle(document.documentElement)
+  const ink = cs.getPropertyValue('--text').trim(), paper = cs.getPropertyValue('--surface').trim()
+  const dpr = window.devicePixelRatio || 1
+  for (const b of document.querySelectorAll('[data-screen]')) {
+    const c = b.querySelector('canvas'), type = b.dataset.screen
+    const w = Math.round((c.clientWidth || 50) * dpr), h = Math.round(34 * dpr)
+    c.width = w; c.height = h
+    const g = c.getContext('2d'), spot = previewSpot(type, w, h, 5 * dpr)
+    // 阈值：按这块预览自己的取值分布取 30% 分位
+    const vals = new Float32Array(w * h)
+    for (let y = 0, i = 0; y < h; y++) for (let x = 0; x < w; x++, i++) vals[i] = spot(x, y)
+    const thr = Float32Array.from(vals).sort()[Math.floor(0.7 * (vals.length - 1))]
+    g.fillStyle = paper; g.fillRect(0, 0, w, h); g.fillStyle = ink
+    for (let y = 0, i = 0; y < h; y++) for (let x = 0; x < w; x++, i++) if (vals[i] > thr) g.fillRect(x, y, 1, 1)
+  }
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', drawPreviews)
+
+// ---------- 示例图：程序画一个平涂角色（深发、红衣、蓝缎带、淡粉嘴线） ----------
+function sample() {
+  const c = document.createElement('canvas'); c.width = 900; c.height = 1200
+  const g = c.getContext('2d')
+  const sky = g.createLinearGradient(0, 0, 0, 1200); sky.addColorStop(0, '#bfe0f4'); sky.addColorStop(1, '#fbfbf7')
+  g.fillStyle = sky; g.fillRect(0, 0, 900, 1200)
+  g.fillStyle = '#f6c945'
+  g.beginPath()
+  for (let q = 0; q < 10; q++) { const r = q % 2 ? 50 : 120, a = -Math.PI / 2 + (q * Math.PI) / 5; g.lineTo(720 + r * Math.cos(a), 220 + r * Math.sin(a)) }
+  g.closePath(); g.fill()
+  const stroke = () => { g.lineWidth = 5; g.strokeStyle = '#2a2224'; g.stroke() }
+  const body = () => { g.beginPath(); g.moveTo(250, 1200); g.quadraticCurveTo(260, 780, 450, 760); g.quadraticCurveTo(640, 780, 650, 1200) }
+  body(); g.closePath(); g.fillStyle = '#d93a3a'; g.fill(); stroke()
+  g.save(); body(); g.closePath(); g.clip()
+  const sh = g.createLinearGradient(420, 0, 660, 0); sh.addColorStop(0, '#d93a3a'); sh.addColorStop(1, '#7d1f2a')
+  g.fillStyle = sh; g.fillRect(420, 760, 240, 440); g.restore()
+  body(); stroke()
+  g.fillStyle = '#2f6fd6'
+  g.beginPath(); g.moveTo(450, 800); g.lineTo(370, 760); g.lineTo(380, 850); g.closePath(); g.fill(); stroke()
+  g.beginPath(); g.moveTo(450, 800); g.lineTo(530, 760); g.lineTo(520, 850); g.closePath(); g.fill(); stroke()
+  g.fillStyle = '#2b2946'; g.beginPath(); g.ellipse(450, 520, 250, 290, 0, 0, Math.PI * 2); g.fill(); stroke()
+  g.beginPath(); g.ellipse(450, 560, 190, 215, 0, 0, Math.PI * 2); g.fillStyle = '#f8dfcf'; g.fill()
+  g.save(); g.clip(); g.fillStyle = '#efc4b3'; g.beginPath(); g.ellipse(560, 700, 210, 150, -0.3, 0, Math.PI * 2); g.fill(); g.restore()
+  g.beginPath(); g.ellipse(450, 560, 190, 215, 0, 0, Math.PI * 2); stroke()
+  g.fillStyle = '#2b2946'
+  g.beginPath(); g.moveTo(240, 520); g.quadraticCurveTo(260, 270, 450, 260); g.quadraticCurveTo(650, 270, 665, 520)
+  g.lineTo(600, 430); g.lineTo(560, 500); g.lineTo(500, 410); g.lineTo(450, 490); g.lineTo(390, 410); g.lineTo(340, 500); g.lineTo(300, 430); g.closePath(); g.fill(); stroke()
+  const hl = g.createLinearGradient(330, 0, 480, 0); hl.addColorStop(0, '#2b2946'); hl.addColorStop(0.5, '#7a75b0'); hl.addColorStop(1, '#2b2946')
+  g.fillStyle = hl; g.beginPath(); g.ellipse(400, 330, 80, 18, -0.15, 0, Math.PI * 2); g.fill()
+  for (const ex of [375, 525]) {
+    g.fillStyle = '#ffffff'; g.beginPath(); g.ellipse(ex, 575, 40, 48, 0, 0, Math.PI * 2); g.fill()
+    g.fillStyle = '#4a3a78'; g.beginPath(); g.ellipse(ex, 582, 30, 40, 0, 0, Math.PI * 2); g.fill()
+    g.fillStyle = '#251c40'; g.beginPath(); g.ellipse(ex, 588, 16, 22, 0, 0, Math.PI * 2); g.fill()
+    g.fillStyle = '#ffffff'; g.beginPath(); g.ellipse(ex - 10, 565, 9, 11, 0, 0, Math.PI * 2); g.fill()
+    g.beginPath(); g.moveTo(ex - 46, 545); g.quadraticCurveTo(ex, 518, ex + 46, 545); g.lineWidth = 6; g.strokeStyle = '#2a2224'; g.stroke()
+  }
+  g.fillStyle = 'rgba(240,140,150,0.35)'
+  for (const bx of [330, 570]) { g.beginPath(); g.ellipse(bx, 650, 40, 16, 0, 0, Math.PI * 2); g.fill() }
+  g.beginPath(); g.moveTo(435, 690); g.quadraticCurveTo(450, 697, 465, 690); g.lineWidth = 3; g.strokeStyle = '#c87878'; g.stroke()
+  return c
+}
+
+syncUI()
+drawPreviews()
+src = sample()
+prepare()
+compute()
+</script>

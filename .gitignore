@@ -1,0 +1,15 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# 生成物与参考资料：对比图来自图库插画和原版示例图，版权不在本仓库；原版仓库自己克隆到 ref/
+out/
+ref/
+compare/*.png
